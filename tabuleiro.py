@@ -1,7 +1,7 @@
 """Interface de caminhos mínimos. Execute: python tabuleiro.py
 
 A interface usa Tkinter, incluído na instalação padrão do Python para Windows.
-O cálculo reutiliza grafo_da_grade e dijkstra_heap de roteamento.py.
+O cálculo usa as duas versões de Dijkstra e força bruta de roteamento.py.
 Cada célula livre é um vértice; movimentos ortogonais custam 1.
 """
 
@@ -9,30 +9,40 @@ import tkinter as tk
 from concurrent.futures import ThreadPoolExecutor
 from math import inf, floor, ceil
 from pathlib import Path
+from queue import Empty, SimpleQueue
 from time import perf_counter
-from tkinter import filedialog, messagebox, simpledialog, ttk
+from tkinter import messagebox, ttk
+from threading import Event
 
-from roteamento import dijkstra_heap, grafo_da_grade
-from mapas_movingai import (Mapa, ler_mapa, ler_cenarios, pontos_locais,
-                           recortar, salvar_instancia, ler_instancia)
+from roteamento import dijkstra_simples, dijkstra_heap, forca_bruta, grafo_da_grade
+from mapas_movingai import ler_mapa
 
 ROWS, COLS = 12, 18
 START = (2, 2)
 DATASET_DIR = Path(__file__).resolve().parent / "datasets" / "artificial_random"
+ALGORITMOS = {
+    "dijkstra_simples": ("Dijkstra — livro (varredura)", dijkstra_simples),
+    "dijkstra": ("Dijkstra — min-heap", dijkstra_heap),
+    "forca_bruta": ("Força bruta", forca_bruta),
+}
 COLORS = {
     "bg": "#eef2f7", "panel": "#ffffff", "ink": "#132238",
     "muted": "#56677d", "board": "#0d1829", "cell": "#15243a",
     "grid": "#23344c", "wall": "#43566e", "wall_top": "#617791",
     "blue": "#397dff", "target": "#ffce62", "path": "#4fe2af",
-    "route_cell": "#193c3c", "error": "#b22a40",
+    "error": "#b22a40",
 }
 
 
-def calcular_rota(grade, origem, destino):
+def calcular_rota(grade, origem, destino, algoritmo="dijkstra", cancelar=None, progresso=None):
     """Função sem Tk: construção do grafo fica fora do tempo de busca exibido."""
+    busca = ALGORITMOS[algoritmo][1]
     grafo = grafo_da_grade(grade)
     inicio = perf_counter()
-    custo, caminho = dijkstra_heap(grafo, origem, destino)
+    if algoritmo == "forca_bruta":
+        custo, caminho = busca(grafo, origem, destino, cancelar, progresso)
+    else:
+        custo, caminho = busca(grafo, origem, destino, cancelar)
     return custo, caminho, perf_counter() - inicio
 
 
@@ -73,6 +83,8 @@ class RouteBoard:
         self.map_edited = False
         self.executor = ThreadPoolExecutor(max_workers=1)
         self.search_future = self.search_job = None
+        self.search_cancel = None
+        self.search_started = self.search_progress = None
         self.map_image = None
         self.zoom = 1.0
         self.fit_size = 1.0
@@ -107,10 +119,13 @@ class RouteBoard:
         self.map_density = tk.StringVar(value="19,0% bloqueadas")
         self.map_info = tk.StringVar(value="12 × 18 · 175 casas livres · 41 obstáculos")
         self.search_time = tk.StringVar(value="Busca: —")
+        self.search_details = tk.StringVar(value="")
         self.zoom_label = tk.StringVar(value="Visão geral")
         self.speed = tk.StringVar(value="1×")
         self.follow = tk.BooleanVar(value=False)
-        self.map_files = {p.name: p for p in sorted(DATASET_DIR.glob("*.map"))}
+        self.map_files = {p.name: p
+            for pasta in (DATASET_DIR, DATASET_DIR.parent / "didaticos")
+            for p in sorted(pasta.glob("*.map"))}
         self.map_choice = tk.StringVar(value="random512-20-0.map")
         self.endpoints = tk.StringVar(value="Origem: linha 3, coluna 3")
         self._build_ui()
@@ -178,17 +193,17 @@ class RouteBoard:
             bg="#e6efff", fg="#395374", font=("Segoe UI", 10), anchor="w",
             justify="left", wraplength=1000)
         self.map_info_label.pack(fill="x", pady=(3, 0))
-        # Uma variável comum torna as opções mutuamente exclusivas.
-        # Força bruta fica desativada até a implementação da próxima etapa.
+        # O mesmo catálogo alimenta a seleção e o cálculo; min-heap é o padrão.
         self.algorithm_section = ttk.LabelFrame(root, text="Algoritmo", padding=(12, 5),
                                                  style="Algorithm.TLabelframe")
         self.algorithm_section.pack(fill="x", padx=26, pady=(0, 8))
-        self.dijkstra_option = ttk.Radiobutton(self.algorithm_section, text="Dijkstra",
-            value="dijkstra", variable=self.algorithm, style="Mode.TRadiobutton")
-        self.dijkstra_option.pack(side="left", padx=(0, 18))
-        self.brute_force_option = ttk.Radiobutton(self.algorithm_section, text="Força bruta",
-            value="forca_bruta", variable=self.algorithm, style="Mode.TRadiobutton", state="disabled")
-        self.brute_force_option.pack(side="left")
+        self.algorithm_options = {}
+        for valor, (texto, _) in ALGORITMOS.items():
+            option = ttk.Radiobutton(self.algorithm_section, text=texto,
+                value=valor, variable=self.algorithm, command=self.algorithm_changed,
+                style="Mode.TRadiobutton")
+            option.pack(side="left", padx=(0, 12))
+            self.algorithm_options[valor] = option
         body = tk.Frame(root, bg=COLORS["bg"])
         body.pack(fill="both", expand=True, padx=26, pady=(0, 12))
         body.columnconfigure(0, weight=1)
@@ -299,7 +314,7 @@ class RouteBoard:
             row=7, column=0, sticky="w")
         metricas = tk.Frame(side, bg="white")
         metricas.grid(row=8, column=0, sticky="w", pady=(14, 18))
-        for variavel in (self.endpoints, self.progress, self.search_time):
+        for variavel in (self.endpoints, self.progress, self.search_time, self.search_details):
             tk.Label(metricas, textvariable=variavel, bg="white", fg=COLORS["muted"],
                      font=("Segoe UI", 10)).pack(anchor="w")
         self.status_label = tk.Label(side, textvariable=self.status, wraplength=215,
@@ -307,7 +322,7 @@ class RouteBoard:
                                      font=("Segoe UI", 11), height=4, anchor="nw")
         self.status_label.grid(row=9, column=0, sticky="nw")
         side.rowconfigure(10, weight=1)
-        tk.Label(side, text="Dijkstra · custo 1 por casa\n↑ ↓ ← →  Sem diagonais", bg="white",
+        tk.Label(side, text="Custo 1 por casa\n↑ ↓ ← →  Sem diagonais", bg="white",
                  fg=COLORS["muted"], justify="left", font=("Segoe UI", 10)).grid(
                      row=11, column=0, sticky="w", pady=(20, 12))
         self.side_view.bind("<Configure>", self.resize_sidebar)
@@ -351,10 +366,12 @@ class RouteBoard:
         return tuple("".join("#" if (r, c) in self.walls else "." for c in range(self.cols))
                      for r in range(self.rows))
 
-    def make_graph(self):
-        return grafo_da_grade(self.current_grid())
-
     def cancel_search(self):
+        self.search_started = self.search_progress = None
+        # Future.cancel() sozinho não interrompe uma tarefa já em execução.
+        if self.search_cancel is not None:
+            self.search_cancel.set()
+            self.search_cancel = None
         if self.search_job is not None:
             self.root.after_cancel(self.search_job)
             self.search_job = None
@@ -382,6 +399,7 @@ class RouteBoard:
         self.update_distance_font()
         self.progress.set("0 movimentos realizados")
         self.search_time.set("Busca: —")
+        self.search_details.set("")
         self.status_label.configure(fg=COLORS["ink"])
         self.play_button.configure(text="▶  Play", state="normal" if self.target else "disabled")
 
@@ -456,8 +474,16 @@ class RouteBoard:
         self.endpoints.set(f"Origem: linha {self.start[0] + 1}, coluna {self.start[1] + 1}")
         self.draw_board()
 
+    def algorithm_changed(self):
+        """Repete a entrada desde a mesma origem ao trocar a implementação."""
+        self.restart()
+        nome = ALGORITMOS[self.algorithm.get()][0]
+        self.status.set(f"{nome} selecionado. Aperte Play para buscar desde a origem."
+                        if self.target is not None else f"{nome} selecionado. Marque um destino.")
+
     def play(self):
         if self.search_future is not None:
+            self.stop_search()
             return
         if self.running:
             self.advance_animation(perf_counter() - self.animation_clock)
@@ -483,13 +509,53 @@ class RouteBoard:
         # Uma cópia da entrada impede que edições alterem uma busca em andamento.
         self.draw_overlay()
         grade = self.current_grid()
-        if self.rows * self.cols > 6000:
-            self.status.set("Calculando a rota no mapa completo…")
-            self.play_button.configure(state="disabled", text="Calculando…")
-            self.search_future = self.executor.submit(calcular_rota, grade, self.player, self.target)
+        algoritmo = self.algorithm.get()
+        if self.rows * self.cols > 6000 or algoritmo != "dijkstra":
+            self.status.set("Enumerando todas as rotas. Para testes rápidos, use os mapas 3×3 e 4×4."
+                            if algoritmo == "forca_bruta" else
+                            "Calculando a rota… Reiniciar percurso cancela a busca.")
+            self.play_button.configure(state="normal", text="■  Cancelar busca")
+            self.search_cancel = Event()
+            self.search_started = perf_counter()
+            # A fila pertence só a esta tarefa; resultados antigos não atualizam a próxima.
+            self.search_progress = SimpleQueue() if algoritmo == "forca_bruta" else None
+            publicar = self.search_progress.put if self.search_progress is not None else None
+            self.search_future = self.executor.submit(
+                calcular_rota, grade, self.player, self.target, algoritmo,
+                self.search_cancel.is_set, publicar)
             self.search_job = self.root.after(40, self.poll_search)
         else:
-            self.apply_result(calcular_rota(grade, self.player, self.target))
+            self.apply_result(calcular_rota(grade, self.player, self.target, algoritmo))
+
+    def update_search_feedback(self):
+        """Exibe atividade sem apresentar o melhor custo parcial como ótimo."""
+        if self.search_started is not None:
+            decorrido = perf_counter() - self.search_started
+            self.search_time.set(f"Decorrido: {decorrido:.1f} s")
+            self.play_button.configure(text=f"■  Cancelar · {decorrido:.1f} s")
+        if self.search_progress is None:
+            return
+        ultimo = None
+        while True:
+            try:
+                ultimo = self.search_progress.get_nowait()
+            except Empty:
+                break
+        if ultimo is not None:
+            estados, rotas = ultimo
+            self.search_details.set(
+                f"Estados explorados: {estados:,}\nRotas completas: {rotas:,}".replace(",", "."))
+
+    def stop_search(self):
+        """Cancela pelo botão principal e mantém visível o trabalho já realizado."""
+        self.update_search_feedback()
+        tempo, detalhes = self.search_time.get(), self.search_details.get()
+        self.clear_route()
+        self.search_time.set(tempo)
+        self.search_details.set(detalhes)
+        self.progress.set("Busca interrompida")
+        self.status.set("Busca cancelada. Nenhum custo mínimo foi confirmado.")
+        self.draw_overlay()
 
     def poll_search(self):
         """Consulta a tarefa sem esperar por ela na thread da janela."""
@@ -497,10 +563,15 @@ class RouteBoard:
         future = self.search_future
         if future is None:
             return
+        self.update_search_feedback()
         if not future.done():
             self.search_job = self.root.after(40, self.poll_search)
             return
+        # A publicação final pode ocorrer entre a leitura acima e future.done().
+        self.update_search_feedback()
         self.search_future = None
+        self.search_cancel = None
+        self.search_started = self.search_progress = None
         try:
             resultado = future.result()
         except Exception as erro:
@@ -590,7 +661,8 @@ class RouteBoard:
                         if self.target else "Marque um destino no tabuleiro.")
         self.draw_board()
 
-    def restore(self):
+    def load_example(self):
+        """Carrega o tabuleiro didático fixo do botão Mini 12 × 18."""
         self.clear_route()
         self.rows, self.cols = ROWS, COLS
         self.loaded_map = None
@@ -617,10 +689,6 @@ class RouteBoard:
         bloqueadas = len(self.walls)
         livres = f"{self.rows * self.cols - bloqueadas:,}".replace(",", ".")
         texto = f"{self.rows} × {self.cols} · {livres} casas livres · {bloqueadas:,} obstáculos".replace(",", ".")
-        if self.loaded_map and (self.rows, self.cols, self.loaded_map.deslocamento) != (
-                self.loaded_map.linhas_originais, self.loaded_map.colunas_originais, (0, 0)):
-            r, c = self.loaded_map.deslocamento
-            texto += f" · recorte em ({r}, {c}) do original {self.loaded_map.linhas_originais} × {self.loaded_map.colunas_originais}"
         if self.map_edited:
             texto += " · editado"
         self.map_name.set(nome)
@@ -643,7 +711,7 @@ class RouteBoard:
             raise ValueError("Os pontos precisam estar em casas livres do mapa.")
         self.clear_route()
         self.loaded_map = mapa
-        self.map_edited = mapa.alterado
+        self.map_edited = False
         self.rows, self.cols = mapa.linhas, mapa.colunas
         self.walls = mapa.paredes
         self.start = self.player = self.cursor = origem
@@ -663,103 +731,11 @@ class RouteBoard:
         self.update_map_info()
         self.draw_board()
 
-    def load_map_file(self, caminho):
-        if Path(caminho).suffix.lower() == ".json":
-            self.load_board(*ler_instancia(caminho))
-        else:
-            self.load_board(ler_mapa(caminho))
-
-    def open_map(self):
-        caminho = filedialog.askopenfilename(parent=self.root, title="Abrir mapa ou instância",
-            initialdir=DATASET_DIR, filetypes=[("Mapas e instâncias", "*.map *.json"), ("Todos", "*.*")])
-        if caminho:
-            try:
-                self.load_map_file(caminho)
-            except (OSError, ValueError, UnicodeError) as erro:
-                messagebox.showerror("Mapa não carregado", str(erro), parent=self.root)
-
     def load_selected(self):
         try:
-            self.load_map_file(self.map_files[self.map_choice.get()])
+            self.load_board(ler_mapa(self.map_files[self.map_choice.get()]))
         except (OSError, ValueError, UnicodeError, KeyError) as erro:
             messagebox.showerror("Mapa não carregado", str(erro), parent=self.root)
-
-    def load_example(self):
-        """O Mini usa o tabuleiro fixo do antigo botão Restaurar tabuleiro."""
-        self.restore()
-
-    def current_map(self):
-        base = self.loaded_map
-        return Mapa(self.current_grid(), base.nome if base else "tabuleiro_didatico",
-            base.fonte if base else "gerado pelo aplicativo", base.sha256_original if base else "",
-            base.linhas_originais if base else self.rows,
-            base.colunas_originais if base else self.cols,
-            base.deslocamento if base else (0, 0), self.map_edited)
-
-    def crop_dialog(self):
-        atual = self.current_map()
-        dialogo = tk.Toplevel(self.root)
-        dialogo.title("Recortar região do mapa")
-        dialogo.transient(self.root)
-        dialogo.grab_set()
-        tk.Label(dialogo, text="Informe posições do mapa atual, começando em 1.\nO recorte mantém as células sem redimensionar.",
-                 justify="left").grid(row=0, column=0, columnspan=2, padx=18, pady=14)
-        valores = []
-        for i, (titulo, valor) in enumerate([("Linha inicial", 1), ("Coluna inicial", 1),
-                                            ("Quantidade de linhas", min(12, self.rows)),
-                                            ("Quantidade de colunas", min(18, self.cols))], 1):
-            tk.Label(dialogo, text=titulo).grid(row=i, column=0, sticky="w", padx=18, pady=5)
-            campo = ttk.Entry(dialogo, width=10)
-            campo.insert(0, str(valor))
-            campo.grid(row=i, column=1, padx=18, pady=5)
-            valores.append(campo)
-        def aplicar():
-            try:
-                r, c, h, w = (int(campo.get()) for campo in valores)
-                mapa = recortar(atual, r - 1, c - 1, h, w)
-                self.load_board(mapa)
-            except ValueError as erro:
-                messagebox.showerror("Recorte inválido", str(erro), parent=dialogo)
-                return
-            dialogo.destroy()
-        ttk.Button(dialogo, text="Aplicar recorte", command=aplicar).grid(
-            row=5, column=0, columnspan=2, padx=18, pady=16)
-        valores[0].focus_set()
-
-    def apply_scenario(self, cenario):
-        if self.loaded_map is None:
-            raise ValueError("Carregue primeiro o mapa ao qual o cenário pertence.")
-        mapa = self.current_map()
-        origem, destino = pontos_locais(mapa, cenario)
-        self.load_board(mapa, origem, destino)
-        self.status.set("Cenário carregado. Play recalcula a rota com quatro direções e custo 1.")
-
-    def open_scenario(self):
-        if self.loaded_map is None:
-            messagebox.showinfo("Carregar cenário", "Abra primeiro um mapa público.", parent=self.root)
-            return
-        caminho = filedialog.askopenfilename(parent=self.root, title="Abrir cenários do mapa",
-            initialdir=DATASET_DIR, filetypes=[("Cenários Moving AI", "*.scen")])
-        if not caminho:
-            return
-        try:
-            cenarios = ler_cenarios(caminho, self.loaded_map)
-            indice = simpledialog.askinteger("Escolher caso", f"Este arquivo tem {len(cenarios)} casos.\nQual caso deseja carregar? (1 a {len(cenarios)})",
-                parent=self.root, initialvalue=1, minvalue=1, maxvalue=len(cenarios))
-            if indice is not None:
-                self.apply_scenario(cenarios[indice - 1])
-        except (OSError, ValueError, UnicodeError) as erro:
-            messagebox.showerror("Cenário não carregado", str(erro), parent=self.root)
-
-    def save_instance(self):
-        caminho = filedialog.asksaveasfilename(parent=self.root, title="Salvar instância reproduzível",
-            defaultextension=".json", filetypes=[("Instância do tabuleiro", "*.json")])
-        if caminho:
-            try:
-                salvar_instancia(caminho, self.current_map(), self.current_grid(), self.start, self.target)
-                self.status.set("Instância salva com mapa, pontos, regras e procedência do recorte.")
-            except (OSError, ValueError) as erro:
-                messagebox.showerror("Instância não salva", str(erro), parent=self.root)
 
     def center(self, cell):
         r, c = cell

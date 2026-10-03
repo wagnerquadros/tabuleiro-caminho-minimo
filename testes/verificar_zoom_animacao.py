@@ -10,8 +10,9 @@ from concurrent.futures import Future
 
 BASE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(BASE))
-from mapas_movingai import Mapa, ler_mapa, ler_instancia, salvar_instancia
-from roteamento import grafo_da_grade, dijkstra_heap, bfs_unitario
+from mapas_movingai import Mapa, ler_mapa
+from roteamento import grafo_da_grade, dijkstra_heap
+from apoio import bfs_unitario
 from tabuleiro import RouteBoard, duracao_animacao, livre_mais_proxima
 
 DATA = BASE / "datasets/artificial_random"
@@ -73,7 +74,8 @@ try:
     assert app.start==livre_mais_proxima(mapa,(0,0))
     assert app.target==livre_mais_proxima(mapa,(511,511))
     assert app.canvas.find_withtag("map") and len(app.canvas.find_withtag("map"))==1
-    assert len(app.map_files)==70
+    assert sum(nome.startswith("random512-") for nome in app.map_files)==70
+    assert {"didatico-3x3.map", "didatico-4x4.map"} <= app.map_files.keys()
     origem,destino=app.start,app.target
     original=app.current_grid()
     for tamanho in ((1160,830),(920,660)):
@@ -114,7 +116,7 @@ try:
     print("OK: zoom/rolagem, seleção correta, limites de imagem e janelas 1160×830 e 920×660.")
 
     # Rota longa verdadeira, em grade vazia de 512×512, sem aguardar oito segundos.
-    aberto=Mapa(tuple("."*512 for _ in range(512)),"teste-aberto","teste","",512,512)
+    aberto=Mapa(tuple("."*512 for _ in range(512)),"teste-aberto")
     app.load_board(aberto)
     caminho=[(0,c) for c in range(512)]+[(r,511) for r in range(1,512)]
     app.apply_result((1022,caminho,.001))
@@ -160,18 +162,18 @@ try:
     assert app.player==app.target and not app.paused and app.job is None
     print("OK: pausa, continuação, zoom durante o percurso, reinício, instantânea e concluir animação.")
 
-    fechado=Mapa(("#..",".#.","..#"),"cantos-bloqueados","teste","",3,3)
+    fechado=Mapa(("#..",".#.","..#"),"cantos-bloqueados")
     app.load_board(fechado)
     assert app.start==(0,1) and app.target==(1,2)
     assert app.current_grid()==fechado.grade and not app.map_edited
     assert "bloqueada" in app.status.get() and "bloqueado" in app.status.get()
     app.load_board(fechado,(2,0),(0,2))
     assert app.start==(2,0) and app.target==(0,2)
-    isolado=Mapa((".#.","###",".#."),"sem-rota","teste","",3,3)
+    isolado=Mapa((".#.","###",".#."),"sem-rota")
     app.load_board(isolado)
     app.play()
     assert app.distance.get()=="Sem rota" and not app.running
-    unico=Mapa((".",),"um-ponto","teste","",1,1)
+    unico=Mapa((".",),"um-ponto")
     app.load_board(unico)
     app.play()
     assert app.distance.get()=="0" and app.player==app.target

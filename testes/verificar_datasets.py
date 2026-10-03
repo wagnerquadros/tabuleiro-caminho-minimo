@@ -1,22 +1,21 @@
-"""Validação dos arquivos reais, conversão e integração com a janela."""
+"""Validação dos mapas reais, das duas buscas e dos controles ativos."""
 import json
-from math import inf
 from pathlib import Path
 import sys
 from tempfile import TemporaryDirectory
 from time import monotonic, sleep
 import tkinter as tk
-from concurrent.futures import Future
+from concurrent.futures import Future, CancelledError
 
-RAIZ = Path(__file__).resolve().parents[1]
-BASE = RAIZ if (RAIZ / "tabuleiro.py").exists() else RAIZ / "outputs"
+BASE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(BASE))
-from mapas_movingai import (ler_mapa, recortar, ler_cenarios, pontos_locais,
-                           ler_instancia, salvar_instancia)
-from roteamento import grafo_da_grade, dijkstra_heap, bfs_unitario
+from mapas_movingai import ler_mapa
+from roteamento import BuscaCancelada, grafo_da_grade, dijkstra_heap, dijkstra_simples
+from apoio import bfs_unitario, conferir_rota
 from tabuleiro import RouteBoard, default_walls
 
 DATA = BASE / "datasets/artificial_random"
+
 
 def rejeita(acao):
     try:
@@ -25,73 +24,47 @@ def rejeita(acao):
         return
     raise AssertionError("Entrada inválida foi aceita")
 
+
 manifesto = json.loads((DATA / "manifesto.json").read_text(encoding="utf-8"))
 hashes = {a["arquivo"]: a["sha256"] for a in manifesto["arquivos_originais_sem_alteracao"]}
 consultas = 0
-for densidade in (10, 20, 40):
-    mapa = ler_mapa(DATA / f"random512-{densidade}-0.map")
+for serie in (10, 20, 40):
+    mapa = ler_mapa(DATA / f"random512-{serie}-0.map")
     assert mapa.linhas == mapa.colunas == 512
     assert mapa.sha256_original == hashes[mapa.nome]
     bruto = (DATA / mapa.nome).read_text().splitlines()[4:]
     assert len(mapa.paredes) == sum(sum(linha.count(s) for s in "@OTW") for linha in bruto)
-    cenarios = ler_cenarios(DATA / f"{mapa.nome}.scen", mapa)
-    assert len(cenarios) > 100
-    for altura, largura in [(3, 3), (4, 4), (5, 5), (12, 18)]:
-        r0, c0 = (512-altura)//2, (512-largura)//2
-        pequeno = recortar(mapa, r0, c0, altura, largura)
-        assert pequeno.grade == tuple("".join("." if s in ".GS" else "#" for s in l[c0:c0+largura])
-                                      for l in bruto[r0:r0+altura])
-        grafo = grafo_da_grade(pequeno.grade)
+    # Regiões pequenas servem só aos testes: o aplicativo carrega mapas completos.
+    for altura, largura in ((3, 3), (4, 4), (5, 5), (12, 18)):
+        r0, c0 = (512 - altura) // 2, (512 - largura) // 2
+        grade = tuple(l[c0:c0 + largura] for l in mapa.grade[r0:r0 + altura])
+        grafo = grafo_da_grade(grade)
         vertices = list(grafo)
         for a in vertices[:4]:
             for b in vertices[-4:]:
-                custo, rota = dijkstra_heap(grafo, a, b)
                 esperado, _ = bfs_unitario(grafo, a, b)
-                assert custo == esperado
-                if custo != inf:
-                    assert rota[0] == a and rota[-1] == b and len(rota) == custo + 1
-                    assert all(pequeno.livre(p) for p in rota)
-                    assert all(abs(a[0]-b[0])+abs(a[1]-b[1]) == 1 for a,b in zip(rota,rota[1:]))
+                for algoritmo in (dijkstra_simples, dijkstra_heap):
+                    custo, rota = algoritmo(grafo, a, b)
+                    assert custo == esperado
+                    conferir_rota(grafo, a, b, custo, rota)
                 consultas += 1
-    print(f"Random {densidade}%: {512*512-len(mapa.paredes)} livres; {len(cenarios)} cenários.")
+    print(f"Random série {serie}: {512 * 512 - len(mapa.paredes)} livres.")
 
 with TemporaryDirectory() as pasta:
-    pasta = Path(pasta)
-    pequeno = recortar(ler_mapa(DATA / "random512-20-0.map"), 7, 11, 12, 18)
-    pequeno2 = recortar(pequeno, 1, 2, 5, 6)
-    assert pequeno2.deslocamento == (8, 13)
-    pontos = [(r,c) for r in range(pequeno2.linhas) for c in range(pequeno2.colunas) if pequeno2.livre((r,c))]
-    arquivo = pasta / "instancia.json"
-    salvar_instancia(arquivo, pequeno2, pequeno2.grade, pontos[0], pontos[-1])
-    lido, a, b = ler_instancia(arquivo)
-    assert (lido, a, b) == (pequeno2, pontos[0], pontos[-1])
-    assert not json.loads(arquivo.read_text(encoding="utf-8"))["editado"]
-    modificado = list(pequeno2.grade)
-    modificado[0] = "#" + modificado[0][1:]
-    # Escolhe pontos que não coincidem com a edição.
-    outros = [p for p in pontos if p != (0,0)]
-    salvar_instancia(arquivo, pequeno2, modificado, outros[0], outros[-1])
-    mod, _, _ = ler_instancia(arquivo)
-    assert mod.alterado == (tuple(modificado) != pequeno2.grade)
-    rejeita(lambda: recortar(pequeno, -1, 0, 2, 2))
-    rejeita(lambda: recortar(pequeno, 10, 10, 12, 12))
-    ruim = pasta / "ruim.map"
-    for texto in ["type octile\nheight 2\nwidth 3\nmap\n...\n..\n",
-                  "type octile\nheight 1\nwidth 1\nmap\nX\n",
-                  "type octile\nheight 1\nwidth 1\nmap\n@\n"]:
-        ruim.write_text(texto)
+    ruim = Path(pasta) / "ruim.map"
+    textos = (
+        "type octile\nheight 2\nwidth 3\nmap\n...\n..\n",
+        "type octile\nheight 1\nwidth 1\nmap\nX\n",
+        "type octile\nheight 1\nwidth 1\nmap\n@\n",
+        "type octile\nheight 0\nwidth 1\nmap\n.\n",
+        "type octile\nheight 1\nwidth 1048577\nmap\n.\n",
+        "type octile\nwidth 1\nheight 1\nmap\n.\n",
+    )
+    for texto in textos:
+        ruim.write_text(texto, encoding="utf-8")
         rejeita(lambda: ler_mapa(ruim))
-    ruim.write_text("type octile\nheight 1\nwidth 7\nmap\n.GS@OTW\n")
+    ruim.write_text("type octile\nheight 1\nwidth 7\nmap\n.GS@OTW\n", encoding="utf-8")
     assert ler_mapa(ruim).grade == ("...####",)
-    ruim.write_text("type octile\nheight 1\nwidth 1\nmap\n.\n")
-    um = ler_mapa(ruim)
-    rejeita(lambda: recortar(um, 0, 0, 2, 2))
-    salvar_instancia(arquivo, um, um.grade, (0,0), None)
-    assert ler_instancia(arquivo)[2] is None
-    obj = json.loads(arquivo.read_text(encoding="utf-8"))
-    obj["origem"] = [2,2]
-    arquivo.write_text(json.dumps(obj))
-    rejeita(lambda: ler_instancia(arquivo))
 
 root = tk.Tk()
 root.withdraw()
@@ -99,49 +72,80 @@ app = RouteBoard(root)
 root.update_idletasks()
 try:
     app.load_example()
-    assert (app.rows, app.cols) == (12,18) and app.loaded_map is None
-    assert app.walls == default_walls() and app.start == (2,2)
-    assert app.target is None and app.player not in app.walls
-    mapa = ler_mapa(DATA / "random512-20-0.map")
-    cenario = ler_cenarios(DATA / f"{mapa.nome}.scen", mapa)[1]
-    app.load_board(mapa)
-    assert len(app.canvas.find_all()) < 20  # Mapa completo é uma imagem, não 262.144 quadrados.
-    app.apply_scenario(cenario)
-    assert app.start == cenario.origem and app.target == cenario.destino
-    # Neste caso real, o custo octile é 2,414... e o ortogonal é 3.
-    assert cenario.custo_octile < 3
+    assert (app.rows, app.cols) == (12, 18) and app.loaded_map is None
+    assert app.walls == default_walls() and app.start == (2, 2)
+    assert app.target is None and not app.editing_enabled
+    assert all(not option.instate(["disabled"]) for option in app.algorithm_options.values())
+    destino = (11, 17)
+    app.select_cell(destino)
+    assert app.target is None
+    app.set_editing(True)
+    app.select_cell(destino)
+    assert app.target == destino
+    app.set_editing(False)
+    app.speed.set("Instantânea")
+    app.play()
+    assert app.distance.get() == "24" and app.player == destino
+    app.algorithm_options["dijkstra_simples"].invoke()
+    assert app.algorithm.get() == "dijkstra_simples" and app.player == app.start
     app.play()
     assert app.search_future is not None
-    prazo = monotonic() + 30
+    prazo = monotonic() + 10
     while app.search_future is not None:
         assert monotonic() < prazo
         root.update()
-        sleep(.01)
-    assert app.distance.get() == "3" and app.path[-1] == cenario.destino
-    app.restart()
-    app.load_board(recortar(mapa, 0, 0, 12, 18))
-    rejeita(lambda: app.apply_scenario(cenario))
+        sleep(.005)
+    assert app.distance.get() == "24" and app.player == destino
+    app.algorithm_options["dijkstra"].invoke()
+    assert app.algorithm.get() == "dijkstra" and app.player == app.start
+    print("OK: opções de algoritmo, mesma origem, edição bloqueada e Mini com custo 24.")
+
+    mapa = ler_mapa(DATA / "random512-20-0.map")
+    app.load_board(mapa)
+    assert len(app.canvas.find_all()) < 20
+    # Trocar de algoritmo interrompe também uma busca real em mapa completo.
+    app.algorithm_options["dijkstra_simples"].invoke()
+    app.play()
+    tarefa = app.search_future
+    sinal = app.search_cancel
+    prazo = monotonic() + 5
+    while not tarefa.running():
+        assert monotonic() < prazo
+        root.update()
+        sleep(.005)
+    app.algorithm_options["dijkstra"].invoke()
+    assert sinal.is_set() and app.search_future is None
+    try:
+        tarefa.result(timeout=5)
+    except (BuscaCancelada, CancelledError):
+        pass
+    else:
+        raise AssertionError("A busca antiga continuou após a troca de algoritmo")
+    assert app.player == app.start and app.distance.get() == "—"
+    print("OK: busca real por varredura cancelada ao trocar de algoritmo.")
     origem = app.player
-    # Uma tarefa antiga não pode reposicionar os pontos depois de outro mapa ser carregado.
-    future = Future()
-    future.set_running_or_notify_cancel()
-    app.search_future = future
+    futuro = Future()
+    futuro.set_running_or_notify_cancel()
+    app.search_future = futuro
     app.search_job = root.after(100, app.poll_search)
-    app.restore()
-    future.set_result((0,[origem],.01))
+    app.load_example()
+    futuro.set_result((0, [origem], .01))
     root.update()
     assert app.search_future is None and app.search_job is None and app.target is None
-    assert app.player == (2,2) and app.loaded_map is None
+    assert app.player == (2, 2) and app.loaded_map is None
+
     root.deiconify()
-    for largura, altura in [(1160,830),(920,660)]:
+    for largura, altura in ((1160, 830), (920, 660)):
         root.geometry(f"{largura}x{altura}")
         root.update()
         app.load_example()
         root.update()
-        for ponto in ((0,0),(11,17)):
+        for ponto in ((0, 0), (11, 17)):
             assert app.cell_at(*app.center(ponto)) == ponto
-        controles = [w for w in root.winfo_children() if isinstance(w,tk.Frame)][1]
-        assert max(w.winfo_x()+w.winfo_width() for w in controles.winfo_children()) <= controles.winfo_width(), "Barra de arquivos cortada"
+        for frame in (app.algorithm_section,):
+            assert max(w.winfo_x() + w.winfo_width() for w in frame.winfo_children()) <= frame.winfo_width()
+        controles = [w for w in root.winfo_children() if isinstance(w, tk.Frame)][1]
+        assert max(w.winfo_x() + w.winfo_width() for w in controles.winfo_children()) <= controles.winfo_width()
 finally:
     app.close()
-print(f"OK: {consultas} consultas em recortes reais; conversão, validação, cenários, exportação, imagem e busca assíncrona.")
+print(f"OK: {consultas} consultas em regiões reais, ambas as versões corretas; conversão, Mini e interface.")

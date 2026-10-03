@@ -1,28 +1,33 @@
-"""Caminho mínimo: exemplos didáticos baseados no capítulo 6 de Skiena.
+"""Algoritmos de caminho mínimo usados pelo tabuleiro.
 
-Execute com Python 3.10 ou mais recente: python roteamento.py
-Não requer bibliotecas externas.
-
-Representação: grafo[u] é uma lista de pares (vizinho, custo).
-Todos os vértices devem aparecer como chaves, inclusive os sem saídas.
-Os exemplos usam strings ou pares (linha, coluna) como vértices.
+Grafo: dicionário de listas de pares (vizinho, custo), com todas as chaves.
+Dijkstra por varredura adapta Skiena, 2ª ed., seção 6.3.1, pp. 206–209.
+A versão min-heap muda a seleção do vértice; força bruta enumera caminhos simples.
 """
 
-from collections import deque
 from heapq import heappop, heappush
 from itertools import count
 from math import inf, isfinite
 
 
-def validar(grafo, origem=None, destino=None):
-    """Confere o contrato da entrada em O(V + E). Pesos são não negativos."""
+class BuscaCancelada(Exception):
+    """A entrada mudou ou a janela foi fechada durante uma busca."""
+
+
+def _verificar_cancelamento(cancelar):
+    if cancelar is not None and cancelar():
+        raise BuscaCancelada()
+
+
+def validar(grafo, origem, destino, cancelar=None):
+    """Confere em O(V + E) que os pesos são finitos e não negativos."""
+    _verificar_cancelamento(cancelar)
     if None in grafo:
         raise ValueError("None é reservado para indicar ausência de predecessor.")
-    if origem is not None and origem not in grafo:
-        raise ValueError("A origem não está no grafo.")
-    if destino is not None and destino not in grafo:
-        raise ValueError("O destino não está no grafo.")
+    if origem not in grafo or destino not in grafo:
+        raise ValueError("Origem e destino precisam pertencer ao grafo.")
     for vizinhos in grafo.values():
+        _verificar_cancelamento(cancelar)
         for vizinho, peso in vizinhos:
             if vizinho not in grafo:
                 raise ValueError("Todo vizinho também deve ser uma chave do grafo.")
@@ -31,7 +36,7 @@ def validar(grafo, origem=None, destino=None):
 
 
 def reconstruir(distancia, anterior, destino):
-    """Segue os predecessores de trás para frente; depois inverte a rota."""
+    """Segue os predecessores até a origem e inverte a rota em O(V)."""
     if distancia[destino] == inf:
         return inf, []
     caminho = []
@@ -43,61 +48,66 @@ def reconstruir(distancia, anterior, destino):
     return distancia[destino], caminho
 
 
-def dijkstra_simples(grafo, origem, destino):
-    """Varredura para escolher o próximo vértice: O(V² + E) de tempo.
+def dijkstra_simples(grafo, origem, destino, cancelar=None):
+    """Versão do livro com seleção linear: tempo O(V² + E), auxiliar O(V).
 
-    Memória auxiliar: O(V), além dos O(V + E) do grafo.
-    Ao parar no destino, não prometemos distâncias finais para outros vértices.
+    Usa distâncias, predecessores e o conjunto de vértices finalizados.
+    Adaptação para o tabuleiro: encerra ao finalizar o destino, em vez de
+    calcular distâncias para todas as casas. Sem rota, retorna (inf, []).
     """
-    validar(grafo, origem, destino)
+    validar(grafo, origem, destino, cancelar)
     distancia = {v: inf for v in grafo}
     anterior = {v: None for v in grafo}
     finalizados = set()
     distancia[origem] = 0
+    u = origem
 
-    while len(finalizados) < len(grafo):
-        # Busca linear: examina os vértices ainda não finalizados.
-        candidatos = (v for v in grafo if v not in finalizados)
-        u = min(candidatos, key=distancia.get)
-
-        # Se o menor custo é infinito, os restantes são inalcançáveis.
-        if distancia[u] == inf:
-            break
+    while u is not None:
+        _verificar_cancelamento(cancelar)
         finalizados.add(u)
-
-        # Agora o custo do destino é definitivo: podemos encerrar.
+        # O destino só pode encerrar a busca quando seu custo é definitivo.
         if u == destino:
             break
 
         for v, peso in grafo[u]:
             novo_custo = distancia[u] + peso
-            # Relaxamento: substitui uma estimativa por uma rota melhor.
             if v not in finalizados and novo_custo < distancia[v]:
                 distancia[v] = novo_custo
                 anterior[v] = u
 
+        # Equivale à varredura dos vetores intree e distance no código em C.
+        # O livro não usa fila de prioridade nesta implementação.
+        u = None
+        menor = inf
+        for v in grafo:
+            if v not in finalizados and distancia[v] < menor:
+                menor = distancia[v]
+                u = v
+        # Se não há candidato com distância finita, o destino é inalcançável.
+
     return reconstruir(distancia, anterior, destino)
 
 
-def dijkstra_heap(grafo, origem, destino):
-    """Fila de prioridade binária; entradas antigas são descartadas.
+def dijkstra_heap(grafo, origem, destino, cancelar=None):
+    """Dijkstra com min-heap binário e descarte de entradas desatualizadas.
 
-    Limite geral de tempo: O(V + E log(E + 2)); auxiliar: O(V + E).
-    Em grafos simples, também vale O((V + E) log(V + 1)).
-    A fila pode guardar várias entradas do mesmo vértice: não usamos decrease-key.
+    Tempo geral O(V + E log(E + 2)); auxiliar O(V + E), além do grafo.
+    Em grafos simples: O((V + E) log(V + 1)). Na grade E = O(V), portanto
+    tempo O(V log(V + 1)) e memória auxiliar O(V).
+    heapq não oferece decrease-key: uma melhora insere uma nova entrada.
     """
-    validar(grafo, origem, destino)
+    validar(grafo, origem, destino, cancelar)
     distancia = {v: inf for v in grafo}
     anterior = {v: None for v in grafo}
     distancia[origem] = 0
 
-    # O contador desempata custos sem precisar comparar os nomes dos vértices.
+    # Desempata custos sem precisar comparar os nomes dos vértices.
     ordem = count()
     fila = [(0, next(ordem), origem)]
     while fila:
+        _verificar_cancelamento(cancelar)
         custo, _, u = heappop(fila)
-
-        # Já encontramos uma rota melhor depois de inserir esta entrada.
+        # Pode haver uma entrada antiga para uma distância já melhorada.
         if custo != distancia[u]:
             continue
         if u == destino:
@@ -113,149 +123,84 @@ def dijkstra_heap(grafo, origem, destino):
     return reconstruir(distancia, anterior, destino)
 
 
-def bfs_unitario(grafo, origem, destino):
-    """Busca em largura para arestas de custo 1: O(V + E), auxiliar O(V)."""
-    validar(grafo, origem, destino)
-    if any(peso != 1 for vizinhos in grafo.values() for _, peso in vizinhos):
-        raise ValueError("Esta BFS exige que todas as arestas tenham custo 1.")
-    distancia = {v: inf for v in grafo}
-    anterior = {v: None for v in grafo}
-    distancia[origem] = 0
-    fila = deque([origem])
-    while fila:
-        u = fila.popleft()
-        if u == destino:
-            break
-        for v, _ in grafo[u]:
-            if distancia[v] == inf:
-                distancia[v] = distancia[u] + 1
-                anterior[v] = u
-                fila.append(v)
-    return reconstruir(distancia, anterior, destino)
+def forca_bruta(grafo, origem, destino, cancelar=None, progresso=None):
+    """Enumera todos os caminhos simples com busca em profundidade e retrocesso.
 
-
-def floyd_warshall(grafo):
-    """Distâncias entre todos os pares; O(V³ + E), memória O(V²).
-
-    Em grafos simples, o tempo se reduz a O(V³).
-
-    Esta implementação mantém o contrato não negativo dos demais exemplos.
-    O algoritmo geral aceita pesos negativos se não houver ciclos negativos.
-    A matriz retornada contém custos, não as rotas reconstruídas.
+    Não encerra na primeira solução e não descarta ramos pelo custo.
+    Visitados contém apenas vértices da rota atual, não de toda a busca.
+    Uma pilha explícita substitui as chamadas recursivas: auxiliar O(V).
+    Na grade de quatro vizinhos, O(V * 3**V) é um limite superior conservador
+    de tempo, além da validação O(V + E). O pior caso é exponencial.
+    Cancelamento lança BuscaCancelada, sem retornar um ótimo não comprovado.
+    progresso recebe (estados explorados, rotas completas) periodicamente.
     """
-    validar(grafo)
-    vertices = list(grafo)
-    distancia = {
-        u: {v: (0 if u == v else inf) for v in vertices}
-        for u in vertices
-    }
-    for u, vizinhos in grafo.items():
-        for v, peso in vizinhos:
-            distancia[u][v] = min(distancia[u][v], peso)
+    validar(grafo, origem, destino, cancelar)
+    melhor_custo = inf
+    melhor_caminho = []
+    caminho = [origem]
+    visitados = {origem}
+    custos = [0]
+    # Cada iterador lembra o próximo vizinho a tentar ao retornar a uma célula.
+    pilha = [iter(grafo[origem])]
+    estados, rotas, iteracoes = 1, 0, 0
+    if progresso is not None:
+        progresso((estados, rotas))
 
-    # k precisa ser o laço externo: libera um novo intermediário por etapa.
-    for k in vertices:
-        for u in vertices:
-            for v in vertices:
-                distancia[u][v] = min(
-                    distancia[u][v], distancia[u][k] + distancia[k][v]
-                )
-    return distancia
+    while pilha:
+        _verificar_cancelamento(cancelar)
+        iteracoes += 1
+        # Agrupa as notificações; não altera as escolhas nem corta ramos.
+        if progresso is not None and iteracoes % 4096 == 0:
+            progresso((estados, rotas))
+        u = caminho[-1]
+        if u == destino:
+            rotas += 1
+            # Chegar ao destino termina só este ramo, não a enumeração inteira.
+            if custos[-1] < melhor_custo:
+                melhor_custo = custos[-1]
+                melhor_caminho = caminho.copy()
+        else:
+            vizinho = next(pilha[-1], None)
+            if vizinho is not None:
+                v, peso = vizinho
+                if v not in visitados:
+                    caminho.append(v)
+                    visitados.add(v)
+                    custos.append(custos[-1] + peso)
+                    pilha.append(iter(grafo[v]))
+                    estados += 1
+                # Tenta o próximo vizinho, mesmo se o custo já supera o melhor.
+                continue
+
+        # Destino alcançado ou vizinhos esgotados: desfaz a última escolha.
+        pilha.pop()
+        visitados.remove(caminho.pop())
+        custos.pop()
+
+    if progresso is not None:
+        progresso((estados, rotas))
+    return melhor_custo, melhor_caminho
 
 
 def grafo_da_grade(grade):
-    """Cada célula livre vira vértice; movimentos ortogonais custam 1.
+    """Constrói em O(linhas × colunas) o grafo de movimentos ortogonais.
 
-    '#' é obstáculo; os demais caracteres representam células livres.
-    Custo de construção: O(linhas * colunas), incluindo ler os obstáculos.
-    Só há arestas entre células livres vizinhas: nenhuma atravessa uma parede.
+    '#' é obstáculo; '.' é célula livre. Cada aresta tem custo 1.
+    A grade tem no máximo quatro arestas de saída por vértice.
     """
     if not grade or not grade[0] or any(len(l) != len(grade[0]) for l in grade):
         raise ValueError("A grade deve ser retangular e não vazia.")
-    linhas, colunas = len(grade), len(grade[0])
+    if any(set(linha) - {".", "#"} for linha in grade):
+        raise ValueError("A grade aceita apenas '.' e '#'.")
     grafo = {
-        (i, j): []
-        for i in range(linhas)
-        for j in range(colunas)
-        if grade[i][j] != "#"
+        (r, c): []
+        for r, linha in enumerate(grade)
+        for c, celula in enumerate(linha)
+        if celula == "."
     }
-    for i, j in grafo:
-        for di, dj in [(-1, 0), (0, 1), (1, 0), (0, -1)]:
-            vizinho = (i + di, j + dj)
+    for r, c in grafo:
+        for dr, dc in ((-1, 0), (0, 1), (1, 0), (0, -1)):
+            vizinho = (r + dr, c + dc)
             if vizinho in grafo:
-                grafo[(i, j)].append((vizinho, 1))
+                grafo[(r, c)].append((vizinho, 1))
     return grafo
-
-
-def instancias_rodoviarias():
-    """Quatro cenários artificiais; todos os pesos estão em minutos."""
-    base = {
-        "S": [("A", 4), ("B", 1)],
-        "A": [("C", 1), ("D", 7)],
-        "B": [("A", 2), ("C", 5)],
-        "C": [("D", 3), ("T", 9)],
-        "D": [("T", 2)],
-        "T": [],
-    }
-    transito = {u: list(vizinhos) for u, vizinhos in base.items()}
-    transito["B"] = [("A", 8), ("C", 5)]
-    bloqueio = {u: list(vizinhos) for u, vizinhos in base.items()}
-    bloqueio["C"] = [("T", 9)]
-    isolado = {
-        u: [(v, peso) for v, peso in vizinhos if v != "T"]
-        for u, vizinhos in base.items()
-    }
-    return [
-        ("Original", base, 9),
-        ("Trânsito: B -> A passa a custar 8", transito, 10),
-        ("Bloqueio: remove C -> D", bloqueio, 12),
-        ("Sem acesso a T", isolado, inf),
-    ]
-
-
-def gerar_grade_com_barreira(tamanho):
-    """Instância escalável: parede vertical com passagem na última linha.
-
-    Origem: (0, 0). Destino: (0, tamanho - 1).
-    Para tamanho >= 3, o custo ótimo é 3 * (tamanho - 1).
-    """
-    if tamanho < 3:
-        raise ValueError("Use tamanho >= 3.")
-    meio = tamanho // 2
-    return [
-        "".join("#" if j == meio and i < tamanho - 1 else "."
-                for j in range(tamanho))
-        for i in range(tamanho)
-    ]
-
-
-def demonstrar():
-    for nome, grafo, esperado in instancias_rodoviarias():
-        print(f"\n{nome}")
-        for algoritmo in [dijkstra_simples, dijkstra_heap]:
-            custo, caminho = algoritmo(grafo, "S", "T")
-            assert custo == esperado
-            rota = " -> ".join(caminho) if caminho else "Não existe rota"
-            print(f"  {algoritmo.__name__}: custo={custo}; {rota}")
-        assert floyd_warshall(grafo)["S"]["T"] == esperado
-
-    grade = ["S.#.T", "..#..", ".....", ".###.", "....."]
-    grafo = grafo_da_grade(grade)
-    print("\nJogo: movimentos ortogonais, todos com custo 1")
-    print("\n".join(grade))
-    for algoritmo in [bfs_unitario, dijkstra_simples, dijkstra_heap]:
-        custo, caminho = algoritmo(grafo, (0, 0), (0, 4))
-        assert custo == 8
-        print(f"  {algoritmo.__name__}: {custo} movimentos; {caminho}")
-
-    print("\nInstâncias maiores com barreira; cada direção conta como um arco")
-    for tamanho in [5, 10, 20]:
-        grafo = grafo_da_grade(gerar_grade_com_barreira(tamanho))
-        custo, _ = dijkstra_heap(grafo, (0, 0), (0, tamanho - 1))
-        assert custo == 3 * (tamanho - 1)
-        print(f"  Grade {tamanho}x{tamanho}: V={len(grafo)}, "
-              f"E={sum(map(len, grafo.values()))}, custo={custo}")
-
-
-if __name__ == "__main__":
-    demonstrar()

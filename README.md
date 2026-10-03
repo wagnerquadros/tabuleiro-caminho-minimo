@@ -4,8 +4,10 @@ Aplicação didática em Python para estudar caminhos mínimos em grafos, com ob
 
 ## Estado atual
 
-- Dijkstra com fila de prioridade baseada em heap.
-- Opção Força bruta visível e desativada; implementação prevista para a próxima etapa.
+- Dijkstra por varredura linear, adaptado do código do livro.
+- Dijkstra com fila de prioridade baseada em min-heap, selecionado inicialmente.
+- Força bruta por busca exaustiva com retrocesso, habilitada na interface.
+- Dois mapas didáticos pequenos, de 3 × 3 e 4 × 4, para comparar os três algoritmos.
 - 70 mapas Random de 512 × 512 do Moving AI Lab.
 - Tabuleiro didático fixo no botão Mini 12 × 18.
 - Edição de destino, origem e obstáculos habilitada pelo botão Editar.
@@ -30,12 +32,14 @@ No Windows, também é possível abrir **Abrir tabuleiro.bat** com um duplo cliq
 
 1. Escolha um nome na lista **Mapa** e aperte **Carregar mapa** para abrir o arquivo completo.
 2. Confira a área de informações logo abaixo: ela mostra o mapa efetivamente carregado, dimensões, casas livres, obstáculos e percentual bloqueado.
-3. Na seção **Algoritmo**, **Dijkstra** fica selecionado. **Força bruta** está desativada por enquanto.
+3. Na seção **Algoritmo**, escolha **Dijkstra — livro (varredura)**, **Dijkstra — min-heap** ou **Força bruta**. As três opções estão habilitadas; min-heap é a inicial. Trocar o algoritmo reinicia o personagem na origem definida e preserva o destino, permitindo repetir a mesma consulta.
 4. Nos mapas do dataset, a origem é o canto superior esquerdo e o destino é o canto inferior direito. Se um canto estiver bloqueado, a aplicação informa a célula livre mais próxima utilizada. A escolha usa distância Manhattan, com desempate por linha e coluna, e preserva os obstáculos.
 5. Aperte **Play**. A linha verde mostra a rota mínima e o ponto azul percorre o caminho. **Menor caminho** informa a quantidade de movimentos.
 6. Use **Pausar / Continuar** para interromper e retomar, ou **Concluir animação** para mostrar imediatamente a chegada.
 
 Se aparecer **Sem rota**, os pontos estão desconectados nas regras do estudo. Se origem e destino coincidirem, o custo é zero.
+
+Buscas em mapas grandes e todas as buscas por varredura ou força bruta acontecem em segundo plano. Durante o cálculo, o botão principal vira **Cancelar** e mostra o tempo decorrido. Clique nele para interromper; **Reiniciar percurso**, trocar de algoritmo ou carregar outro mapa também cancela a busca atual. **Concluir animação** só atua após o cálculo. A varredura pode demorar muito em mapas 512 × 512; use min-heap para explorar os mapas completos. Para força bruta, comece com os mapas didáticos 3 × 3 e 4 × 4.
 
 ### Tabuleiro Mini
 
@@ -72,17 +76,51 @@ O zoom muda apenas a apresentação. Na visão geral, algumas células podem ocu
 
 A velocidade escolhida vale no próximo Play. Pausas não consomem o tempo restante; atrasos da interface podem aumentar a duração observada.
 
-Dê foco ao tabuleiro com um clique. As setas movem o cursor; Enter seleciona a célula quando a edição está habilitada; Espaço inicia ou pausa; Ctrl+0 ajusta a visão geral.
+Dê foco ao tabuleiro com um clique. As setas movem o cursor; Enter seleciona a célula quando a edição está habilitada; Espaço inicia, pausa ou cancela uma busca em andamento; Ctrl+0 ajusta a visão geral.
+
+## As duas versões de Dijkstra
+
+Na edição de 2008, Dijkstra está na **seção 6.3.1**, e o código em C da página 208 escolhe o próximo vértice por uma varredura linear. A seção **6.3.2** apresenta Floyd para caminhos mínimos entre todos os pares; esse não é o problema de uma única rota usado pelo tabuleiro.
+
+As duas implementações mantêm distâncias e predecessores, relaxam arestas e finalizam vértices na ordem de menor distância conhecida. O que muda é a estrutura que seleciona o próximo vértice:
+
+| Implementação | Seleção do próximo vértice | Tempo na grade | Memória auxiliar na grade |
+|---|---|---|---|
+| Livro / varredura | Percorre os vértices ainda não finalizados. | O(V²) | O(V) |
+| Min-heap | Retira da fila de prioridade a menor distância. | O(V log(V + 1)) | O(V) |
+
+V é o número de células livres. Cada vértice tem no máximo quatro vizinhos, portanto E = O(V). O grafo usa O(V + E) de memória, além das estruturas da busca. Construir o grafo e ler os obstáculos custa O(linhas × colunas), inclusive quando existem muitas células bloqueadas.
+
+Em grafos gerais, a varredura custa O(V² + E). Nosso min-heap usa inserções de novas estimativas e descarta entradas desatualizadas, sem `decrease-key`; por isso, o limite geral é O(V + E log(E + 2)) de tempo e O(V + E) de memória auxiliar. Para grafos simples, também vale O((V + E) log(V + 1)).
+
+O código do livro calcula distâncias da origem para todos os vértices alcançáveis. Na aplicação, ambas as versões encerram quando o destino é retirado como o próximo vértice de distância definitiva. Essa adaptação preserva o resultado da consulta origem–destino. Em caso de empate, as rotas podem ter células diferentes e o mesmo custo ótimo.
+
+## Força bruta com retrocesso
+
+Para experimentar, selecione **didatico-3x3.map** ou **didatico-4x4.map** na lista Mapa, aperte **Carregar mapa**, escolha **Força bruta** e aperte **Play**. São grades abertas, com origem no primeiro canto e destino no último: os custos mínimos são 4 e 6 movimentos, respectivamente. Há 12 caminhos simples no primeiro mapa e 184 no segundo; a força bruta enumera todos eles. Use Editar para adicionar obstáculos ou mover os pontos e repita a comparação.
+
+No **Mini 12 × 18**, colocar o destino ao lado da origem não torna a enumeração rápida: além da rota de um movimento, existem muitas rotas maiores que também precisam ser examinadas. O aplicativo continua trabalhando e mostra **estados explorados** e **rotas completas**. Cada estado é um prefixo de rota examinado, não uma célula distinta; cada rota completa é uma chegada ao destino. Os contadores são atualizados em lotes durante a busca e mostram os totais quando ela termina. Enquanto isso, o campo de menor caminho fica sem resultado.
+
+O algoritmo mantém a rota atual, seu custo e um conjunto com as células usadas nessa rota. Ao escolher um vizinho, ele acrescenta a célula e a marca; ao retornar, desfaz essa escolha e desmarca a célula. Assim, uma célula pode aparecer em outra rota, mas nunca se repete na mesma rota.
+
+Ao chegar ao destino, compara o custo com o melhor encontrado e continua explorando as outras possibilidades. **Não encerra na primeira solução, não usa podas por custo e não usa Dijkstra ou BFS para auxiliar a busca.** Chegar ao destino encerra apenas o ramo atual: continuar e voltar ao mesmo destino repetiria uma célula.
+
+Uma pilha explícita guarda os vizinhos ainda não tentados em cada etapa, cumprindo o papel das chamadas recursivas. Isso permite testar corredores longos sem atingir o limite de recursão do Python. O algoritmo guarda apenas a rota atual e a melhor rota, com memória auxiliar O(V), além do grafo.
+
+O tempo depende da quantidade de caminhos simples explorados e é exponencial no pior caso. Na grade, a primeira célula tem até quatro opções e as seguintes até três, porque voltar à célula anterior é proibido. Com profundidade de no máximo V − 1 movimentos e cópias de rota de até V células, **O(V · 3^V)** é um limite superior conservador. Essa complexidade é da enumeração; o problema de caminho mínimo continua tendo soluções polinomiais, como Dijkstra.
+
+A enumeração só retorna um resultado quando termina. Se for cancelada, o personagem não inicia uma rota parcial, e **Sem rota** não é exibido como conclusão da busca interrompida. Não há limite automático de tempo ou tamanho. Mesmo o Mini 12 × 18 pode exigir um número impraticável de caminhos; comece com as instâncias didáticas pequenas e use Reiniciar percurso para cancelar quando necessário.
 
 ## Estrutura
 
 | Caminho | Conteúdo |
 |---|---|
 | `tabuleiro.py` | Interface, controles, zoom e animação. |
-| `roteamento.py` | Grafo da grade, Dijkstra e BFS para conferência. |
-| `mapas_movingai.py` | Leitura e validação dos mapas e instâncias. |
+| `roteamento.py` | Grafo da grade, duas versões de Dijkstra e força bruta. |
+| `mapas_movingai.py` | Leitura, validação e conversão dos arquivos `.map`. |
 | `datasets/artificial_random/` | Mapas originais, manifestos e cenários anteriores. |
-| `testes/` | Verificações dos dados, zoom e animação. |
+| `datasets/didaticos/` | Duas instâncias sintéticas abertas para comparação pequena. |
+| `testes/` | Referências de correção e verificações dos algoritmos, dados e interface. |
 | `docs/` | Proposta resumida do estudo; os manuais serão elaborados na etapa final. |
 
 As orientações de uso ficam neste README. `work/` e `outputs/` guardam registros e arquivos gerados localmente e ficam fora do histórico Git.
@@ -92,13 +130,15 @@ Documento do estudo: [proposta resumida](docs/Proposta_Dijkstra_Forca_Bruta.md).
 ## Verificações
 
 ```text
+python -B testes/verificar_dijkstra.py
+python -B testes/verificar_forca_bruta.py
 python -B testes/verificar_datasets.py
 python -B testes/verificar_zoom_animacao.py
 ```
 
-As verificações exigem Tkinter funcional e podem abrir janelas. Incluem hashes dos 70 mapas, conversão, recortes, instâncias, comparação entre Dijkstra e BFS, casos sem rota, cliques após zoom e controles da animação.
+As verificações de força bruta, datasets e zoom exigem Tkinter funcional e podem abrir janelas. Os testes incluem hashes dos 70 mapas, conversão, consultas em regiões pequenas, comparação dos três algoritmos, pesos zero, destinos inalcançáveis, cancelamento, cliques após zoom e controles da animação. A força bruta é conferida em todas as 512 disposições de obstáculos da grade 3 × 3, para todos os pares de casas livres, e em grafos ponderados pequenos; também são verificadas enumeração completa, ausência de podas por custo e uma rota de 1.500 vértices. BFS e Bellman-Ford aparecem somente nos testes; não fazem parte dos algoritmos da interface.
 
-**Busca: ... ms** mede a chamada de Dijkstra, incluindo validação e reconstrução, depois de construir o grafo. Não inclui carregar arquivos, construir o grafo ou animar. A avaliação experimental exige repetições e condições documentadas. Como os pesos são 1, BFS também encontra o caminho mínimo; aqui é usada como referência de validação.
+Durante o cálculo, **Decorrido: ... s** mostra o tempo desde o envio da tarefa, incluindo a construção do grafo e eventual espera na fila. Após a conclusão, **Busca: ... ms** mede a chamada do algoritmo selecionado, incluindo validação, obtenção do caminho e, na força bruta, atualização dos contadores, depois de construir o grafo. Não inclui carregar arquivos, construir o grafo, esperar na fila de execução ou animar. A avaliação experimental exige repetições e condições documentadas. Como os pesos são 1, BFS também encontra o caminho mínimo; aqui é usada apenas como referência de validação.
 
 ## Dataset: origem, atribuição e regras
 
@@ -115,11 +155,11 @@ Os números nos nomes das séries são rótulos da fonte. A proporção bloquead
 
 O carregador valida o cabeçalho `type octile / height / width / map` e converte `.`, `G` e `S` em células livres e `@`, `O`, `T` e `W` em bloqueadas. Símbolos desconhecidos são rejeitados. A política de `S` e `W` é uma simplificação do modelo; mapas Terrain com regras próprias não fazem parte deste conjunto.
 
-As regras da aplicação são quatro direções e custo 1. Os cenários publicados usam coordenadas `(x, y)`, convertidas pelo módulo para `(linha, coluna) = (y, x)`. Seus custos com diagonais não são resultados esperados para nosso modelo ortogonal.
+As regras da aplicação são quatro direções e custo 1. Arquivos `.scen` e instâncias JSON da preparação anterior permanecem como dados, mas não são carregados pela interface atual. Os custos publicados nos cenários incluem diagonais e não são resultados esperados para nosso modelo ortogonal.
 
 Para adicionar outro mapa compatível ao catálogo, coloque o arquivo `.map` em `datasets/artificial_random` e reabra a aplicação.
 
 ## Referências
 
-- SKIENA, Steven S. *The Algorithm Design Manual*. 2. ed. Springer, 2008, capítulo 6, caminhos mínimos e Dijkstra.
+- SKIENA, Steven S. *The Algorithm Design Manual*. 2. ed. Springer, 2008, seção 6.3.1, “Dijkstra’s Algorithm”, p. 206–209. A seção 6.3.2 trata de caminhos mínimos entre todos os pares com Floyd.
 - STURTEVANT, Nathan R. *Benchmarks for Grid-Based Pathfinding*. IEEE Transactions on Computational Intelligence and AI in Games, v. 4, n. 2, p. 144–148, 2012. [Texto do autor](https://www.cs.du.edu/~sturtevant/papers/benchmarks.pdf).
