@@ -83,11 +83,11 @@ Dê foco ao tabuleiro com um clique. As setas movem o cursor; Enter seleciona a 
 | `mapas_movingai.py` | Leitura e validação dos mapas e instâncias. |
 | `datasets/artificial_random/` | Mapas originais, manifestos e cenários anteriores. |
 | `testes/` | Verificações dos dados, zoom e animação. |
-| `docs/` | Proposta e resumo acadêmico; os manuais serão elaborados na etapa final. |
+| `docs/` | Proposta resumida do estudo; os manuais serão elaborados na etapa final. |
 
 As orientações de uso ficam neste README. `work/` e `outputs/` guardam registros e arquivos gerados localmente e ficam fora do histórico Git.
 
-Documentos do estudo: [proposta](docs/Proposta_Python_Dijkstra_Forca_Bruta.md) e [resumo do primeiro entregável](docs/Resumo_Entregavel_1_Dijkstra_Forca_Bruta.md).
+Documento do estudo: [proposta resumida](docs/Proposta_Dijkstra_Forca_Bruta.md).
 
 ## Verificações
 
