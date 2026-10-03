@@ -1,0 +1,37 @@
+{
+  "formato": "grade-caminho-minimo-v1",
+  "regras": {
+    "direcoes": 4,
+    "custo": 1
+  },
+  "grade": [
+    ".#..",
+    "..##",
+    "....",
+    "...#"
+  ],
+  "origem": [
+    0,
+    0
+  ],
+  "destino": [
+    3,
+    2
+  ],
+  "procedencia": {
+    "nome": "random512-20-0.map",
+    "fonte": "C:\\Users\\woqua\\Documents\\Codex\\2026-09-20\\roteamento-de-gps-waze-war-story\\outputs\\datasets\\artificial_random\\random512-20-0.map",
+    "sha256_original": "be06c419982ad8e722668dd60da8e3353f958be89056f3bb2f67b441e4b9c6ed",
+    "dimensoes_originais": [
+      512,
+      512
+    ],
+    "deslocamento_linha_coluna": [
+      254,
+      254
+    ],
+    "livres": ".GS",
+    "bloqueados": "@OTW"
+  },
+  "editado": false
+}

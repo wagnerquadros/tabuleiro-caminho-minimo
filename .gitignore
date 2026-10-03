@@ -1,0 +1,18 @@
+# Arquivos gerados localmente
+/work/
+/outputs/
+__pycache__/
+*.py[cod]
+*.log
+*.zip
+
+# Ambientes locais e configurações pessoais
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,282 @@
+{
+  "regra": "Janela central; origem primeira célula livre e destino última célula livre na ordem linha-coluna. Sem seleção pela alcançabilidade.",
+  "observacao": "Custos de referência recalculados por BFS com quatro direções e custo 1; null indica ausência de rota.",
+  "instancias": [
+    {
+      "arquivo": "central-serie-10-3x3.json",
+      "mapa_original": "random512-10-0.map",
+      "posicao_no_original": [
+        254,
+        254
+      ],
+      "dimensoes": [
+        3,
+        3
+      ],
+      "origem": [
+        0,
+        0
+      ],
+      "destino": [
+        2,
+        2
+      ],
+      "casas_livres": 9,
+      "custo_ortogonal_bfs": 4,
+      "alcancavel": true
+    },
+    {
+      "arquivo": "central-serie-10-4x4.json",
+      "mapa_original": "random512-10-0.map",
+      "posicao_no_original": [
+        254,
+        254
+      ],
+      "dimensoes": [
+        4,
+        4
+      ],
+      "origem": [
+        0,
+        0
+      ],
+      "destino": [
+        3,
+        3
+      ],
+      "casas_livres": 15,
+      "custo_ortogonal_bfs": 6,
+      "alcancavel": true
+    },
+    {
+      "arquivo": "central-serie-10-5x5.json",
+      "mapa_original": "random512-10-0.map",
+      "posicao_no_original": [
+        253,
+        253
+      ],
+      "dimensoes": [
+        5,
+        5
+      ],
+      "origem": [
+        0,
+        0
+      ],
+      "destino": [
+        4,
+        4
+      ],
+      "casas_livres": 22,
+      "custo_ortogonal_bfs": 8,
+      "alcancavel": true
+    },
+    {
+      "arquivo": "central-serie-10-12x18.json",
+      "mapa_original": "random512-10-0.map",
+      "posicao_no_original": [
+        250,
+        247
+      ],
+      "dimensoes": [
+        12,
+        18
+      ],
+      "origem": [
+        0,
+        0
+      ],
+      "destino": [
+        11,
+        17
+      ],
+      "casas_livres": 197,
+      "custo_ortogonal_bfs": 28,
+      "alcancavel": true
+    },
+    {
+      "arquivo": "central-serie-20-3x3.json",
+      "mapa_original": "random512-20-0.map",
+      "posicao_no_original": [
+        254,
+        254
+      ],
+      "dimensoes": [
+        3,
+        3
+      ],
+      "origem": [
+        0,
+        0
+      ],
+      "destino": [
+        2,
+        2
+      ],
+      "casas_livres": 7,
+      "custo_ortogonal_bfs": 4,
+      "alcancavel": true
+    },
+    {
+      "arquivo": "central-serie-20-4x4.json",
+      "mapa_original": "random512-20-0.map",
+      "posicao_no_original": [
+        254,
+        254
+      ],
+      "dimensoes": [
+        4,
+        4
+      ],
+      "origem": [
+        0,
+        0
+      ],
+      "destino": [
+        3,
+        2
+      ],
+      "casas_livres": 12,
+      "custo_ortogonal_bfs": 5,
+      "alcancavel": true
+    },
+    {
+      "arquivo": "central-serie-20-5x5.json",
+      "mapa_original": "random512-20-0.map",
+      "posicao_no_original": [
+        253,
+        253
+      ],
+      "dimensoes": [
+        5,
+        5
+      ],
+      "origem": [
+        0,
+        0
+      ],
+      "destino": [
+        4,
+        3
+      ],
+      "casas_livres": 21,
+      "custo_ortogonal_bfs": 7,
+      "alcancavel": true
+    },
+    {
+      "arquivo": "central-serie-20-12x18.json",
+      "mapa_original": "random512-20-0.map",
+      "posicao_no_original": [
+        250,
+        247
+      ],
+      "dimensoes": [
+        12,
+        18
+      ],
+      "origem": [
+        0,
+        0
+      ],
+      "destino": [
+        11,
+        17
+      ],
+      "casas_livres": 179,
+      "custo_ortogonal_bfs": 28,
+      "alcancavel": true
+    },
+    {
+      "arquivo": "central-serie-40-3x3.json",
+      "mapa_original": "random512-40-0.map",
+      "posicao_no_original": [
+        254,
+        254
+      ],
+      "dimensoes": [
+        3,
+        3
+      ],
+      "origem": [
+        0,
+        1
+      ],
+      "destino": [
+        2,
+        2
+      ],
+      "casas_livres": 6,
+      "custo_ortogonal_bfs": 3,
+      "alcancavel": true
+    },
+    {
+      "arquivo": "central-serie-40-4x4.json",
+      "mapa_original": "random512-40-0.map",
+      "posicao_no_original": [
+        254,
+        254
+      ],
+      "dimensoes": [
+        4,
+        4
+      ],
+      "origem": [
+        0,
+        1
+      ],
+      "destino": [
+        3,
+        2
+      ],
+      "casas_livres": 10,
+      "custo_ortogonal_bfs": 4,
+      "alcancavel": true
+    },
+    {
+      "arquivo": "central-serie-40-5x5.json",
+      "mapa_original": "random512-40-0.map",
+      "posicao_no_original": [
+        253,
+        253
+      ],
+      "dimensoes": [
+        5,
+        5
+      ],
+      "origem": [
+        0,
+        0
+      ],
+      "destino": [
+        4,
+        3
+      ],
+      "casas_livres": 18,
+      "custo_ortogonal_bfs": 7,
+      "alcancavel": true
+    },
+    {
+      "arquivo": "central-serie-40-12x18.json",
+      "mapa_original": "random512-40-0.map",
+      "posicao_no_original": [
+        250,
+        247
+      ],
+      "dimensoes": [
+        12,
+        18
+      ],
+      "origem": [
+        0,
+        1
+      ],
+      "destino": [
+        11,
+        14
+      ],
+      "casas_livres": 95,
+      "custo_ortogonal_bfs": null,
+      "alcancavel": false
+    }
+  ]
+}

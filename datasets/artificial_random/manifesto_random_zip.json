@@ -1,0 +1,568 @@
+{
+  "arquivo_recebido": "random-map.zip",
+  "sha256_zip": "0b4a655e7b112c6b38d07495834fc3890100367f2f7a75493a16cdb2d730a663",
+  "total_mapas": 70,
+  "originais_sem_alteracao": true,
+  "mapas": [
+    {
+      "arquivo": "random512-10-0.map",
+      "bytes": 262693,
+      "sha256": "df47a4030f8967d8be60b33fecd1f6aa059132a2fe1e1b19e463dc52c0838654",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 235900
+    },
+    {
+      "arquivo": "random512-10-1.map",
+      "bytes": 262693,
+      "sha256": "0b0a33d6d9d1afa891c086174171dc2b9d6e17083d51abe4c70d1ccfee195128",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 235895
+    },
+    {
+      "arquivo": "random512-10-2.map",
+      "bytes": 262693,
+      "sha256": "3416d3abe475300c77393235a1fa0c3bbdad61a62afccd522c0cc42715df9f5b",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 235907
+    },
+    {
+      "arquivo": "random512-10-3.map",
+      "bytes": 262693,
+      "sha256": "4063a258b50d1cf6aba7081de1926ba5239c51ce44e97cdc562d7b857f603e00",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 235907
+    },
+    {
+      "arquivo": "random512-10-4.map",
+      "bytes": 262693,
+      "sha256": "067234a27aaeb9955aa9a55f597c26c8f14657aba115c441319c4c5428c6f2a6",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 235905
+    },
+    {
+      "arquivo": "random512-10-5.map",
+      "bytes": 262693,
+      "sha256": "e9671ce4364877f9d362c1f30925bf6a4ddf8ccb56dc7388b8c1313d708cb4a8",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 235910
+    },
+    {
+      "arquivo": "random512-10-6.map",
+      "bytes": 262693,
+      "sha256": "fa71eac5c91cfbdfe7b9058932fa037a0a7110c5450919ae744c8dd2baa34934",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 235897
+    },
+    {
+      "arquivo": "random512-10-7.map",
+      "bytes": 262693,
+      "sha256": "9af48f9f0ed2cb2dfb7157e29491915e7f711fd9a30db83a7190f9ca587a2c47",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 235907
+    },
+    {
+      "arquivo": "random512-10-8.map",
+      "bytes": 262693,
+      "sha256": "cebb7436c5aafc20c0b63490782d230b7dc51d02e022ca0270f6bc02d67a42eb",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 235900
+    },
+    {
+      "arquivo": "random512-10-9.map",
+      "bytes": 262693,
+      "sha256": "2a8a7f21449ca45f8756dd979ca5858bb1e052bc33cc5622f05a03d3d9d2b652",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 235900
+    },
+    {
+      "arquivo": "random512-15-0.map",
+      "bytes": 262693,
+      "sha256": "ef376c51097b61b2f9cc10ac6f4b931d983061af97cbd2cb3e57c04529641af5",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 222687
+    },
+    {
+      "arquivo": "random512-15-1.map",
+      "bytes": 262693,
+      "sha256": "c9adffacf8ff1efccf5b2d3d103e31c85b1618edc7916df44215ce2ae85a405f",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 222683
+    },
+    {
+      "arquivo": "random512-15-2.map",
+      "bytes": 262693,
+      "sha256": "a1154b29c041ad68c900a2632d672b7da72e0690db18690616ff5e14e5af7f59",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 222694
+    },
+    {
+      "arquivo": "random512-15-3.map",
+      "bytes": 262693,
+      "sha256": "54c4fcfdcb3a401b2dcfef39326f1c8d03fd41faa37d4d0066e5cc9cfee96bb5",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 222695
+    },
+    {
+      "arquivo": "random512-15-4.map",
+      "bytes": 262693,
+      "sha256": "f899e436f32765916322ea93b989739f5733c566b32e628e18e1109f8cf0f905",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 222681
+    },
+    {
+      "arquivo": "random512-15-5.map",
+      "bytes": 262693,
+      "sha256": "7583d313e657749602e2c9362b5ed918ce34c670da6d8c19b22ef1c7fad2520b",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 222691
+    },
+    {
+      "arquivo": "random512-15-6.map",
+      "bytes": 262693,
+      "sha256": "292b04ea2418b07ca5da4752b330cb9489cb264f22107fd3aa7922884eb2cb63",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 222703
+    },
+    {
+      "arquivo": "random512-15-7.map",
+      "bytes": 262693,
+      "sha256": "5d94aba07709f57ceedc19d531fee58dc67f3414e77e3604a165aae199499fe4",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 222675
+    },
+    {
+      "arquivo": "random512-15-8.map",
+      "bytes": 262693,
+      "sha256": "25ec5b8300122f326d20481a8a39691bdec8fd8e2167221cc6f1e269912e5ca6",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 222700
+    },
+    {
+      "arquivo": "random512-15-9.map",
+      "bytes": 262693,
+      "sha256": "d788ab067458ee593e482ac33fc81638047eaaa1147786d3dd47b95b3af3b6d8",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 222679
+    },
+    {
+      "arquivo": "random512-20-0.map",
+      "bytes": 262693,
+      "sha256": "be06c419982ad8e722668dd60da8e3353f958be89056f3bb2f67b441e4b9c6ed",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 209281
+    },
+    {
+      "arquivo": "random512-20-1.map",
+      "bytes": 262693,
+      "sha256": "0c81955b4b99334572f89e9ea2ee00c3446159e178cf1244556478d0e601fe7d",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 209241
+    },
+    {
+      "arquivo": "random512-20-2.map",
+      "bytes": 262693,
+      "sha256": "d85212138b600a45dac29d7f2b311b207ad155f3ea7f50569cf22e5e6ef7e4fc",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 209231
+    },
+    {
+      "arquivo": "random512-20-3.map",
+      "bytes": 262693,
+      "sha256": "28f2fabaeaaa727e502fc91cd1838d0166f3859ea25c7d24afe16767f3249f3a",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 209233
+    },
+    {
+      "arquivo": "random512-20-4.map",
+      "bytes": 262693,
+      "sha256": "63ed8af4e369dd2c7af54bed4915430aaefdcadee9dece8c52a34628191bdcc5",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 209309
+    },
+    {
+      "arquivo": "random512-20-5.map",
+      "bytes": 262693,
+      "sha256": "7e4cb18093261ab097794b0b52b9f50b4f4fded2664e8adbc5e7ef3df4422d7f",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 209204
+    },
+    {
+      "arquivo": "random512-20-6.map",
+      "bytes": 262693,
+      "sha256": "fab9166386be90429ee8c23e33cc9ffb7c25841291eb9629fd9586480ffa8dc8",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 209264
+    },
+    {
+      "arquivo": "random512-20-7.map",
+      "bytes": 262693,
+      "sha256": "0a8a942d6826018662c42e00e86e75c18b9ee6112a88da778d72c582026cba32",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 209326
+    },
+    {
+      "arquivo": "random512-20-8.map",
+      "bytes": 262693,
+      "sha256": "77ba61e0dad70a74e4d48263fc3e7d61184dd2b472c1dc30b36ab7dc5bf0763f",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 209235
+    },
+    {
+      "arquivo": "random512-20-9.map",
+      "bytes": 262693,
+      "sha256": "abc3eddb00c05fc0763b7fca94397257a2513538920c28ec4daa91f75a94cd26",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 209226
+    },
+    {
+      "arquivo": "random512-25-0.map",
+      "bytes": 262693,
+      "sha256": "a6643b4c0792784611a4bcf69bb268e4b6e2c5e467a58bfdf0f8c184189b2769",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 195313
+    },
+    {
+      "arquivo": "random512-25-1.map",
+      "bytes": 262693,
+      "sha256": "7ba8307eb9d7f5655ce28fcefdbe7d6f3bf20c2eeeaf4bb4859bb8456caf270c",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 195352
+    },
+    {
+      "arquivo": "random512-25-2.map",
+      "bytes": 262693,
+      "sha256": "222982295f1bd10c3f37df0195ad43716cc4da0d621f41c6aed974ac924b4532",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 195386
+    },
+    {
+      "arquivo": "random512-25-3.map",
+      "bytes": 262693,
+      "sha256": "923aeb79a240a004d6f92fd0dcf3181d5b3514a924140d7cc332142845816604",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 195275
+    },
+    {
+      "arquivo": "random512-25-4.map",
+      "bytes": 262693,
+      "sha256": "67eebe72410585680a48cca541e2637981697a924145a5884b7f5badfea476bb",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 195272
+    },
+    {
+      "arquivo": "random512-25-5.map",
+      "bytes": 262693,
+      "sha256": "2f0c5bb5344c2521d8160479de063c7949ca2de3e7d3f179cdce767d6b26061a",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 195352
+    },
+    {
+      "arquivo": "random512-25-6.map",
+      "bytes": 262693,
+      "sha256": "d7b2333a6f04df0465dfc028ff597da1453b73e610490e16ba77b6feec3c4f42",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 195290
+    },
+    {
+      "arquivo": "random512-25-7.map",
+      "bytes": 262693,
+      "sha256": "61ca0fae98654c7b7e1cf57a4face3e70f2eb203a6ffe06699c50048b3b5be4b",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 195399
+    },
+    {
+      "arquivo": "random512-25-8.map",
+      "bytes": 262693,
+      "sha256": "03e436f244da1ead3f647ecab49664e10003e9abcd74a972eeee55e2034bf581",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 195144
+    },
+    {
+      "arquivo": "random512-25-9.map",
+      "bytes": 262693,
+      "sha256": "c2b9c88e1180a8601b79aa6a4128fb3567f612bb087e5a9b08dea0b737383c2b",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 195366
+    },
+    {
+      "arquivo": "random512-30-0.map",
+      "bytes": 262693,
+      "sha256": "173962175c042ccac4e8137d1f86dff10bbabd8e0c32227b9070a2e6f39e242b",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 180136
+    },
+    {
+      "arquivo": "random512-30-1.map",
+      "bytes": 262693,
+      "sha256": "ca1b85145f5375115e37ea6d858f144f651dfd1dc2fca83199a35df4c221ca7b",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 180026
+    },
+    {
+      "arquivo": "random512-30-2.map",
+      "bytes": 262693,
+      "sha256": "bc704aa53f26a0dcab64957f8a37dec0c8c08367f9e856606dcaa9f6507e3665",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 180286
+    },
+    {
+      "arquivo": "random512-30-3.map",
+      "bytes": 262693,
+      "sha256": "f6ad80cbc3cd6347240107cce418ca89a58b5337fba77af5563422846b0c3808",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 180215
+    },
+    {
+      "arquivo": "random512-30-4.map",
+      "bytes": 262693,
+      "sha256": "a1499e9bf2c7951670e9d9c036e682c083abfb7afd7314085fb4f0112539caac",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 180132
+    },
+    {
+      "arquivo": "random512-30-5.map",
+      "bytes": 262693,
+      "sha256": "90673f227aa348e47446670cd0b9c2bc043c9b5bf6a337d82e0211d2ea938aaa",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 180346
+    },
+    {
+      "arquivo": "random512-30-6.map",
+      "bytes": 262693,
+      "sha256": "ca2073b0b8742f19b0c00609c5b2eee3bbde3a851c7a8e92e7b8511d3a835e94",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 180141
+    },
+    {
+      "arquivo": "random512-30-7.map",
+      "bytes": 262693,
+      "sha256": "b3c942e254ebd0ec417ba4c09d107cde80297798867c2871de69009e83e9c1a1",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 180377
+    },
+    {
+      "arquivo": "random512-30-8.map",
+      "bytes": 262693,
+      "sha256": "2e3623deaca6525e011c7be041d01ee9d73402632d2eafe4820a6a7b922006a2",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 180359
+    },
+    {
+      "arquivo": "random512-30-9.map",
+      "bytes": 262693,
+      "sha256": "8f8d519f03a4d0df2b770c8ac7df35ffe23d42dd7f936a7ff39b6d9fc9ad12a8",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 180074
+    },
+    {
+      "arquivo": "random512-35-0.map",
+      "bytes": 262693,
+      "sha256": "cf0d24d07bf8baceed18016af488d435a73fded2410c94ba9241ce619cb41822",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 161541
+    },
+    {
+      "arquivo": "random512-35-1.map",
+      "bytes": 262693,
+      "sha256": "f16272f5c65641af97077c8cfb117238ce5089f6c7b71aa5af8f477edf4d874a",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 161137
+    },
+    {
+      "arquivo": "random512-35-2.map",
+      "bytes": 262693,
+      "sha256": "19efa2dcd7cab058be6bfadf798094401c0ddd38dfa399c4f4d127d85199eeb4",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 162108
+    },
+    {
+      "arquivo": "random512-35-3.map",
+      "bytes": 262693,
+      "sha256": "42a4481db5dd4ed75ad52f7ef59eb1a0e948f2aff6aa92ad0db1ad159eb0cb92",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 160743
+    },
+    {
+      "arquivo": "random512-35-4.map",
+      "bytes": 262693,
+      "sha256": "7343c53f15467325c6234a1e46314d4faa64ad3ee4989a9ffdb2616d038fbed2",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 161639
+    },
+    {
+      "arquivo": "random512-35-5.map",
+      "bytes": 262693,
+      "sha256": "f4209746806d125c3163b5cbdf698264348c53581c0b46f533106e037b9d7098",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 161426
+    },
+    {
+      "arquivo": "random512-35-6.map",
+      "bytes": 262693,
+      "sha256": "4a655d6039c48d5f2aa9294273e48e0b654592434a71f44eebfcb530d6b7034f",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 161276
+    },
+    {
+      "arquivo": "random512-35-7.map",
+      "bytes": 262693,
+      "sha256": "b162e6f3efb95fafe2d80ab18f65fceb1f174f0f2ed36ca932c6cc269f722355",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 161060
+    },
+    {
+      "arquivo": "random512-35-8.map",
+      "bytes": 262693,
+      "sha256": "d3e7e52a3d93a7a74305b84ab5e1389c43177e286e04acb52615291aefc6480f",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 161131
+    },
+    {
+      "arquivo": "random512-35-9.map",
+      "bytes": 262693,
+      "sha256": "cd6de40854f2d841d71350cc7bfdb53f1737b331f2e37555ce69188c5bbd449c",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 161068
+    },
+    {
+      "arquivo": "random512-40-0.map",
+      "bytes": 262693,
+      "sha256": "d62707cbef07f43ddc8db58bc4e22def6af8ebab3059dc96ceafcbe2c8af8241",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 104950
+    },
+    {
+      "arquivo": "random512-40-1.map",
+      "bytes": 262693,
+      "sha256": "213d3433476c3a5d25fa441d97e97f1ca29583be46df848ce3d6419b4095fb13",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 108676
+    },
+    {
+      "arquivo": "random512-40-2.map",
+      "bytes": 262693,
+      "sha256": "0430345bbf2e251ce940f0a5e89692ede7a568188f1aed51dd005d5db191c80e",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 53642
+    },
+    {
+      "arquivo": "random512-40-3.map",
+      "bytes": 262693,
+      "sha256": "cdb5335f7a3cde5c19daf6a22f149c3911e9aeab2dbf40c9ce15c36ba1e59606",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 108128
+    },
+    {
+      "arquivo": "random512-40-4.map",
+      "bytes": 262693,
+      "sha256": "4511c30a44689ed7c09e259af5e7029d7c7a0f2fddc88f7e2ccaf52413daa47a",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 101610
+    },
+    {
+      "arquivo": "random512-40-5.map",
+      "bytes": 262693,
+      "sha256": "d904efd5311ffdeacd68325f1164f21508539d3237207aa7a44a6a1c4bfbe6e4",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 104350
+    },
+    {
+      "arquivo": "random512-40-6.map",
+      "bytes": 262693,
+      "sha256": "b7204174da4c37ff23aa67b7a5c6d3965fac6e2aac602e66572c61e484b97623",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 112047
+    },
+    {
+      "arquivo": "random512-40-7.map",
+      "bytes": 262693,
+      "sha256": "e12d004b85a975a9263af1158bf5c8f4cd10fb82a4782441d8bb33e89189dd22",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 85011
+    },
+    {
+      "arquivo": "random512-40-8.map",
+      "bytes": 262693,
+      "sha256": "8d2dd5705a693fb5672656a2dc4eebbdda53eacef96b41b097453c62d5b59ae9",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 114456
+    },
+    {
+      "arquivo": "random512-40-9.map",
+      "bytes": 262693,
+      "sha256": "14468f239300bbc9218a61dbaf5616dec1ca6dbba843f70fcd5633ed5eaa065f",
+      "linhas": 512,
+      "colunas": 512,
+      "livres": 70779
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+# Código e documentação com quebras de linha consistentes
+* text=auto
+*.py text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.bat text eol=crlf
+
+# Não alterar os bytes dos benchmarks: hashes identificam os originais
+*.map -text
+*.scen -text
+*.pdf binary

@@ -1,0 +1,32 @@
+MATERIAL DE ESTUDO DO TABULEIRO
+
+Comece pelo Manual_de_implementacao_do_tabuleiro.pdf, na pasta acima.
+O arquivo .md contém o mesmo texto em formato editável, para copiar os trechos.
+
+Mantenha esta pasta com seus arquivos de apoio. Abra um terminal nesta pasta
+e execute uma etapa por vez. Feche a janela antes de iniciar a próxima.
+
+1. python etapa_01_janela.py
+   Abre uma janela e uma área de desenho.
+
+2. python etapa_02_tabuleiro.py
+   Mostra o cenário e permite marcar o destino.
+
+3. python etapa_03_busca.py
+   Acrescenta o botão Play, calcula e desenha a rota mínima.
+
+4. python etapa_04_animacao.py
+   Move o personagem pela rota, uma casa por vez.
+
+Cada etapa é um programa executável completo. As etapas 2 a 4 usam cenario.py;
+as etapas 3 e 4 também usam roteamento.py. Não junte todos os arquivos em um só.
+
+A pasta versao_completa contém uma cópia da interface final. Nela, o movimento
+é suave, há pausa e retomada, edição das paredes, teclado e ajuste de tamanho.
+Abra o arquivo Abrir tabuleiro.bat ou execute python tabuleiro.py nessa pasta.
+
+Requisitos: Python 3.10 ou posterior com Tkinter. Não há pacotes externos.
+Confira a instalação com python -m tkinter. Os exemplos foram testados com
+Python 3.11 no Windows. A aparência pode variar em outros sistemas.
+
+Os exemplos são didáticos e locais: não usam GPS, internet ou mapas reais.

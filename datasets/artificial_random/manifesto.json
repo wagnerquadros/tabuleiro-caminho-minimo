@@ -1,0 +1,44 @@
+{
+  "colecao": "Moving AI Lab — Artificial Benchmarks / Random maps",
+  "fonte": "https://www.movingai.com/benchmarks/random/index.html",
+  "baixado_em_utc": "2026-10-03T15:13:09.165546+00:00",
+  "licenca": "https://opendatacommons.org/licenses/by/1-0/",
+  "arquivos_originais_sem_alteracao": [
+    {
+      "arquivo": "random512-10-0.map",
+      "url": "https://www.movingai.com/benchmarks/random/random512-10-0.map.zip",
+      "bytes": 262693,
+      "sha256": "df47a4030f8967d8be60b33fecd1f6aa059132a2fe1e1b19e463dc52c0838654"
+    },
+    {
+      "arquivo": "random512-10-0.map.scen",
+      "url": "https://www.movingai.com/benchmarks/random/random512-10-0.map-scen.zip",
+      "bytes": 103283,
+      "sha256": "4321aa42397455bafef06c8d50c0a0e343c48b270ac51cec0c10acb9db45f418"
+    },
+    {
+      "arquivo": "random512-20-0.map",
+      "url": "https://www.movingai.com/benchmarks/random/random512-20-0.map.zip",
+      "bytes": 262693,
+      "sha256": "be06c419982ad8e722668dd60da8e3353f958be89056f3bb2f67b441e4b9c6ed"
+    },
+    {
+      "arquivo": "random512-20-0.map.scen",
+      "url": "https://www.movingai.com/benchmarks/random/random512-20-0.map-scen.zip",
+      "bytes": 110942,
+      "sha256": "0699f5125346e8250f32cae2d308ffef3688b57372ec10f3b645f4620e2d4ba4"
+    },
+    {
+      "arquivo": "random512-40-0.map",
+      "url": "https://www.movingai.com/benchmarks/random/random512-40-0.map.zip",
+      "bytes": 262693,
+      "sha256": "d62707cbef07f43ddc8db58bc4e22def6af8ebab3059dc96ceafcbe2c8af8241"
+    },
+    {
+      "arquivo": "random512-40-0.map.scen",
+      "url": "https://www.movingai.com/benchmarks/random/random512-40-0.map-scen.zip",
+      "bytes": 187254,
+      "sha256": "4ca0797f0274e76440478b67bb24ca683c9b7cf6f661ec954046b7ae69e076cd"
+    }
+  ]
+}
