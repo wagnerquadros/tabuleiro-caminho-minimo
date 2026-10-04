@@ -8,6 +8,7 @@ Aplicação didática em Python para estudar caminhos mínimos em grafos, com ob
 - Dijkstra com fila de prioridade baseada em min-heap, selecionado inicialmente.
 - BFS com fila FIFO, para caminhos mínimos com movimentos de custo 1.
 - Força bruta por busca exaustiva com retrocesso, habilitada na interface.
+- Dez mapas sintéticos de benchmark, `teste1.map` a `teste10.map`, com 6 × 10 células.
 - Dois mapas didáticos pequenos, de 3 × 3 e 4 × 4, para comparar os quatro algoritmos.
 - 70 mapas Random de 512 × 512 do Moving AI Lab.
 - Tabuleiro didático fixo no botão Mini 12 × 18.
@@ -45,6 +46,29 @@ Buscas em mapas grandes e todas as buscas por varredura ou força bruta acontece
 ### Tabuleiro Mini
 
 **Mini 12 × 18** abre o tabuleiro didático original, independente do mapa selecionado no catálogo. Ele tem 41 obstáculos, origem na linha 3/coluna 3 e destino a escolher. Clique em **Editar**, mantenha **Marcar destino** e selecione uma casa livre antes de apertar Play.
+
+### Mapas de teste para benchmarks
+
+Os arquivos **teste1.map a teste10.map** ficam em `datasets/testes/` e aparecem em ordem numérica no início da lista Mapa. Todos têm **6 linhas e 10 colunas**, com origem na **linha 1, coluna 1** e destino na **linha 6, coluna 10**. Selecione um mapa e aperte **Carregar mapa**; em seguida, escolha o algoritmo e aperte **Play**.
+
+São instâncias sintéticas fixas, com obstáculos variados. **Todos os dez mapas têm destino alcançável a partir da origem.** A tabela registra o resultado esperado para os pontos definidos acima.
+
+| Mapa | Cenário | Obstáculos | Custo mínimo | Rotas simples |
+|---|---|---:|---:|---:|
+| `teste1.map` | Obstáculos distribuídos | 14 | 14 | 144 |
+| `teste2.map` | Bloco central | 24 | 14 | 384 |
+| `teste3.map` | Barreira vertical com passagem | 20 | 20 | 8 |
+| `teste4.map` | Paredes alternadas | 20 | 22 | 24 |
+| `teste5.map` | Corredor em serpentina | 27 | 32 | 1 |
+| `teste6.map` | Corredores com becos sem saída | 37 | 14 | 1 |
+| `teste7.map` | Rotas ao redor de blocos | 22 | 14 | 4 |
+| `teste8.map` | Passagens estreitas | 27 | 32 | 1 |
+| `teste9.map` | Barreira horizontal com abertura | 17 | 14 | 72 |
+| `teste10.map` | Obstáculos intercalados | 18 | 14 | 20 |
+
+O arquivo `datasets/testes/manifesto.json` registra dimensões, origem e destino, quantidade de obstáculos, custo mínimo esperado, quantidade de rotas simples e hash SHA-256 de cada mapa. Os custos foram conferidos com BFS, Dijkstra e enumeração exaustiva concluída. Esses valores servem para verificar os resultados; tempos de execução precisam ser medidos nas repetições do benchmark.
+
+Para comparar os algoritmos, preserve os obstáculos e os mesmos pontos. Trocar o algoritmo devolve o personagem à origem configurada. Os dez mapas permitem comparar custos e esforço de busca em diferentes estruturas. Como todos têm 6 × 10 células, esse conjunto avalia a disposição dos obstáculos; a análise de crescimento com o tamanho exige também outras dimensões. A garantia de alcance se aplica aos mapas originais e aos extremos definidos; edições podem alterar a conectividade.
 
 ### Editar pontos e obstáculos
 
@@ -132,6 +156,7 @@ A enumeração só retorna um resultado quando termina. Se for cancelada, o pers
 | `roteamento.py` | Grafo da grade, BFS, duas versões de Dijkstra e força bruta. |
 | `mapas_movingai.py` | Leitura, validação e conversão dos arquivos `.map`. |
 | `datasets/artificial_random/` | Mapas originais, manifestos e cenários anteriores. |
+| `datasets/testes/` | Dez mapas de benchmark 6 × 10, todos alcançáveis, e manifesto com resultados esperados. |
 | `datasets/didaticos/` | Duas instâncias sintéticas abertas para comparação pequena. |
 | `testes/` | Referências de correção e verificações dos algoritmos, dados e interface. |
 | `docs/` | Proposta resumida do estudo; os manuais serão elaborados na etapa final. |
@@ -143,6 +168,7 @@ Documento do estudo: [proposta resumida](docs/Proposta_Dijkstra_Forca_Bruta.md).
 ## Verificações
 
 ```text
+python -B testes/verificar_mapas_teste.py
 python -B testes/verificar_bfs.py
 python -B testes/verificar_dijkstra.py
 python -B testes/verificar_forca_bruta.py
@@ -150,7 +176,7 @@ python -B testes/verificar_datasets.py
 python -B testes/verificar_zoom_animacao.py
 ```
 
-As verificações de BFS, força bruta, datasets e zoom exigem Tkinter funcional e podem abrir janelas. Os testes incluem hashes dos 70 mapas, conversão, consultas em regiões pequenas, comparação dos quatro algoritmos nas grades, pesos zero, destinos inalcançáveis, cancelamento, cliques após zoom e controles da animação. A força bruta é conferida em todas as 512 disposições de obstáculos da grade 3 × 3, para todos os pares de casas livres, e em grafos ponderados pequenos; também são verificadas enumeração completa, ausência de podas por custo e uma rota de 1.500 vértices. Os testes preservam uma BFS independente e Bellman-Ford como referências de correção. A BFS de produção também é conferida contra Dijkstra, incluindo todas as disposições de obstáculos 3 × 3 e mapas completos de 512 × 512.
+As verificações de mapas de teste, BFS, força bruta, datasets e zoom exigem Tkinter funcional e podem abrir janelas. Os testes incluem hashes dos 70 mapas, conversão, consultas em regiões pequenas, comparação dos quatro algoritmos nas grades, pesos zero, destinos inalcançáveis, cancelamento, cliques após zoom e controles da animação. A força bruta é conferida em todas as 512 disposições de obstáculos da grade 3 × 3, para todos os pares de casas livres, e em grafos ponderados pequenos; também são verificadas enumeração completa, ausência de podas por custo e uma rota de 1.500 vértices. Os testes preservam uma BFS independente e Bellman-Ford como referências de correção. A BFS de produção também é conferida contra Dijkstra, incluindo todas as disposições de obstáculos 3 × 3 e mapas completos de 512 × 512.
 
 Durante o cálculo, **Decorrido: ... s** mostra o tempo desde o envio da tarefa, incluindo a construção do grafo e eventual espera na fila. Após a conclusão, **Busca: ... ms** mede a chamada do algoritmo selecionado, incluindo validação, obtenção do caminho e, na força bruta, atualização dos contadores, depois de construir o grafo. Não inclui carregar arquivos, construir o grafo, esperar na fila de execução ou animar. A avaliação experimental exige repetições e condições documentadas. Como os pesos são 1, BFS também encontra o caminho mínimo e pode ser selecionada na interface para comparação com Dijkstra.
 

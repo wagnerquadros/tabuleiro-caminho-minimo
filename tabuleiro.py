@@ -125,8 +125,10 @@ class RouteBoard:
         self.speed = tk.StringVar(value="1×")
         self.follow = tk.BooleanVar(value=False)
         self.map_files = {p.name: p
-            for pasta in (DATASET_DIR, DATASET_DIR.parent / "didaticos")
-            for p in sorted(pasta.glob("*.map"))}
+            for pasta in (DATASET_DIR.parent / "testes", DATASET_DIR.parent / "didaticos", DATASET_DIR)
+            for p in sorted(pasta.glob("*.map"), key=lambda p: (
+                int(p.stem[5:]) if p.stem.startswith("teste") and p.stem[5:].isdigit() else 0,
+                p.name))}
         self.map_choice = tk.StringVar(value="random512-20-0.map")
         self.endpoints = tk.StringVar(value="Origem: linha 3, coluna 3")
         self._build_ui()
