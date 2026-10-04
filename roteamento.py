@@ -3,8 +3,10 @@
 Grafo: dicionário de listas de pares (vizinho, custo), com todas as chaves.
 Dijkstra por varredura adapta Skiena, 2ª ed., seção 6.3.1, pp. 206–209.
 A versão min-heap muda a seleção do vértice; força bruta enumera caminhos simples.
+BFS usa fila FIFO para movimentos de custo 1 (Skiena, seção 5.6, pp. 162–165).
 """
 
+from collections import deque
 from heapq import heappop, heappush
 from itertools import count
 from math import inf, isfinite
@@ -19,8 +21,8 @@ def _verificar_cancelamento(cancelar):
         raise BuscaCancelada()
 
 
-def validar(grafo, origem, destino, cancelar=None):
-    """Confere em O(V + E) que os pesos são finitos e não negativos."""
+def validar(grafo, origem, destino, cancelar=None, *, custo_unitario=False):
+    """Confere os pesos em O(V + E); a BFS também exige custo 1."""
     _verificar_cancelamento(cancelar)
     if None in grafo:
         raise ValueError("None é reservado para indicar ausência de predecessor.")
@@ -33,6 +35,8 @@ def validar(grafo, origem, destino, cancelar=None):
                 raise ValueError("Todo vizinho também deve ser uma chave do grafo.")
             if not isfinite(peso) or peso < 0:
                 raise ValueError("O peso precisa ser finito e não negativo.")
+            if custo_unitario and peso != 1:
+                raise ValueError("BFS exige custo 1 em todas as arestas.")
 
 
 def reconstruir(distancia, anterior, destino):
@@ -119,6 +123,36 @@ def dijkstra_heap(grafo, origem, destino, cancelar=None):
                 distancia[v] = novo_custo
                 anterior[v] = u
                 heappush(fila, (novo_custo, next(ordem), v))
+
+    return reconstruir(distancia, anterior, destino)
+
+
+def bfs(grafo, origem, destino, cancelar=None):
+    """Busca em largura com fila FIFO: tempo O(V + E), auxiliar O(V).
+
+    Cada aresta deve custar 1. A fila explora os vértices por distância
+    crescente em movimentos; a primeira descoberta fixa a distância mínima.
+    Adapta Skiena, seção 5.6, e reconstrói a rota com predecessores.
+    Sem rota, retorna (inf, []); cancelamento lança BuscaCancelada.
+    """
+    validar(grafo, origem, destino, cancelar, custo_unitario=True)
+    distancia = {v: inf for v in grafo}
+    anterior = {v: None for v in grafo}
+    distancia[origem] = 0
+    fila = deque([origem])
+
+    while fila:
+        _verificar_cancelamento(cancelar)
+        # FIFO: o primeiro vértice inserido é o primeiro a ser retirado.
+        u = fila.popleft()
+        if u == destino:
+            break
+        for v, _ in grafo[u]:
+            if distancia[v] == inf:
+                # Marca na inserção para não enfileirar a mesma célula novamente.
+                distancia[v] = distancia[u] + 1
+                anterior[v] = u
+                fila.append(v)
 
     return reconstruir(distancia, anterior, destino)
 

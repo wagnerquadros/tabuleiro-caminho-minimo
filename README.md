@@ -6,8 +6,9 @@ Aplicação didática em Python para estudar caminhos mínimos em grafos, com ob
 
 - Dijkstra por varredura linear, adaptado do código do livro.
 - Dijkstra com fila de prioridade baseada em min-heap, selecionado inicialmente.
+- BFS com fila FIFO, para caminhos mínimos com movimentos de custo 1.
 - Força bruta por busca exaustiva com retrocesso, habilitada na interface.
-- Dois mapas didáticos pequenos, de 3 × 3 e 4 × 4, para comparar os três algoritmos.
+- Dois mapas didáticos pequenos, de 3 × 3 e 4 × 4, para comparar os quatro algoritmos.
 - 70 mapas Random de 512 × 512 do Moving AI Lab.
 - Tabuleiro didático fixo no botão Mini 12 × 18.
 - Edição de destino, origem e obstáculos habilitada pelo botão Editar.
@@ -32,14 +33,14 @@ No Windows, também é possível abrir **Abrir tabuleiro.bat** com um duplo cliq
 
 1. Escolha um nome na lista **Mapa** e aperte **Carregar mapa** para abrir o arquivo completo.
 2. Confira a área de informações logo abaixo: ela mostra o mapa efetivamente carregado, dimensões, casas livres, obstáculos e percentual bloqueado.
-3. Na seção **Algoritmo**, escolha **Dijkstra — livro (varredura)**, **Dijkstra — min-heap** ou **Força bruta**. As três opções estão habilitadas; min-heap é a inicial. Trocar o algoritmo reinicia o personagem na origem definida e preserva o destino, permitindo repetir a mesma consulta.
+3. Na seção **Algoritmo**, escolha **Dijkstra — livro (varredura)**, **Dijkstra — min-heap**, **BFS — fila FIFO** ou **Força bruta**. As quatro opções estão habilitadas; min-heap é a inicial. Trocar o algoritmo reinicia o personagem na origem definida e preserva o destino, permitindo repetir a mesma consulta.
 4. Nos mapas do dataset, a origem é o canto superior esquerdo e o destino é o canto inferior direito. Se um canto estiver bloqueado, a aplicação informa a célula livre mais próxima utilizada. A escolha usa distância Manhattan, com desempate por linha e coluna, e preserva os obstáculos.
 5. Aperte **Play**. A linha verde mostra a rota mínima e o ponto azul percorre o caminho. **Menor caminho** informa a quantidade de movimentos.
 6. Use **Pausar / Continuar** para interromper e retomar, ou **Concluir animação** para mostrar imediatamente a chegada.
 
 Se aparecer **Sem rota**, os pontos estão desconectados nas regras do estudo. Se origem e destino coincidirem, o custo é zero.
 
-Buscas em mapas grandes e todas as buscas por varredura ou força bruta acontecem em segundo plano. Durante o cálculo, o botão principal vira **Cancelar** e mostra o tempo decorrido. Clique nele para interromper; **Reiniciar percurso**, trocar de algoritmo ou carregar outro mapa também cancela a busca atual. **Concluir animação** só atua após o cálculo. A varredura pode demorar muito em mapas 512 × 512; use min-heap para explorar os mapas completos. Para força bruta, comece com os mapas didáticos 3 × 3 e 4 × 4.
+Buscas em mapas grandes e todas as buscas por varredura ou força bruta acontecem em segundo plano. Durante o cálculo, o botão principal vira **Cancelar** e mostra o tempo decorrido. Clique nele para interromper; **Reiniciar percurso**, trocar de algoritmo ou carregar outro mapa também cancela a busca atual. **Concluir animação** só atua após o cálculo. A varredura pode demorar muito em mapas 512 × 512; use BFS ou min-heap para explorar os mapas completos. Para força bruta, comece com os mapas didáticos 3 × 3 e 4 × 4.
 
 ### Tabuleiro Mini
 
@@ -77,6 +78,18 @@ O zoom muda apenas a apresentação. Na visão geral, algumas células podem ocu
 A velocidade escolhida vale no próximo Play. Pausas não consomem o tempo restante; atrasos da interface podem aumentar a duração observada.
 
 Dê foco ao tabuleiro com um clique. As setas movem o cursor; Enter seleciona a célula quando a edição está habilitada; Espaço inicia, pausa ou cancela uma busca em andamento; Ctrl+0 ajusta a visão geral.
+
+## BFS com fila FIFO
+
+Selecione **BFS — fila FIFO** na seção Algoritmo e aperte **Play**. A busca usa uma fila `collections.deque`: `append` coloca uma célula no final e `popleft` retira a primeira, ambos em O(1). FIFO significa que a primeira célula a entrar é a primeira a sair.
+
+A origem entra na fila com distância zero. Ao retirar uma célula, a BFS descobre seus vizinhos livres, registra a distância como a distância atual mais 1 e guarda a célula anterior. Cada célula é marcada quando entra na fila, evitando inserções repetidas. Assim, a busca explora primeiro as células a um movimento, depois a dois, e assim sucessivamente. Ela encerra ao retirar o destino e reconstrói a rota pelos predecessores.
+
+Como todos os movimentos custam 1, essa ordem garante o menor custo. A função rejeita arestas de custo diferente de 1; terrenos com custos variados exigiriam outro algoritmo, como Dijkstra. Origem igual ao destino retorna custo zero; destino desconectado retorna **Sem rota**. Nos mapas grandes, a BFS calcula em segundo plano e pode ser cancelada pelo botão principal ou ao trocar a entrada.
+
+O tempo da busca, incluindo validação e reconstrução, é **O(V + E)**, com memória auxiliar **O(V)**. Na grade de quatro vizinhos, E = O(V), portanto o tempo é **O(V)**. Construir o grafo custa O(linhas × colunas) e fica fora do tempo de busca mostrado após a conclusão. BFS e Dijkstra podem escolher rotas diferentes em empates, mas devem obter o mesmo custo mínimo.
+
+A referência é Skiena, 2ª edição, seção 5.6, p. 162–165; a seção 5.6.2 explica a reconstrução do caminho.
 
 ## As duas versões de Dijkstra
 
@@ -116,7 +129,7 @@ A enumeração só retorna um resultado quando termina. Se for cancelada, o pers
 | Caminho | Conteúdo |
 |---|---|
 | `tabuleiro.py` | Interface, controles, zoom e animação. |
-| `roteamento.py` | Grafo da grade, duas versões de Dijkstra e força bruta. |
+| `roteamento.py` | Grafo da grade, BFS, duas versões de Dijkstra e força bruta. |
 | `mapas_movingai.py` | Leitura, validação e conversão dos arquivos `.map`. |
 | `datasets/artificial_random/` | Mapas originais, manifestos e cenários anteriores. |
 | `datasets/didaticos/` | Duas instâncias sintéticas abertas para comparação pequena. |
@@ -130,15 +143,16 @@ Documento do estudo: [proposta resumida](docs/Proposta_Dijkstra_Forca_Bruta.md).
 ## Verificações
 
 ```text
+python -B testes/verificar_bfs.py
 python -B testes/verificar_dijkstra.py
 python -B testes/verificar_forca_bruta.py
 python -B testes/verificar_datasets.py
 python -B testes/verificar_zoom_animacao.py
 ```
 
-As verificações de força bruta, datasets e zoom exigem Tkinter funcional e podem abrir janelas. Os testes incluem hashes dos 70 mapas, conversão, consultas em regiões pequenas, comparação dos três algoritmos, pesos zero, destinos inalcançáveis, cancelamento, cliques após zoom e controles da animação. A força bruta é conferida em todas as 512 disposições de obstáculos da grade 3 × 3, para todos os pares de casas livres, e em grafos ponderados pequenos; também são verificadas enumeração completa, ausência de podas por custo e uma rota de 1.500 vértices. BFS e Bellman-Ford aparecem somente nos testes; não fazem parte dos algoritmos da interface.
+As verificações de BFS, força bruta, datasets e zoom exigem Tkinter funcional e podem abrir janelas. Os testes incluem hashes dos 70 mapas, conversão, consultas em regiões pequenas, comparação dos quatro algoritmos nas grades, pesos zero, destinos inalcançáveis, cancelamento, cliques após zoom e controles da animação. A força bruta é conferida em todas as 512 disposições de obstáculos da grade 3 × 3, para todos os pares de casas livres, e em grafos ponderados pequenos; também são verificadas enumeração completa, ausência de podas por custo e uma rota de 1.500 vértices. Os testes preservam uma BFS independente e Bellman-Ford como referências de correção. A BFS de produção também é conferida contra Dijkstra, incluindo todas as disposições de obstáculos 3 × 3 e mapas completos de 512 × 512.
 
-Durante o cálculo, **Decorrido: ... s** mostra o tempo desde o envio da tarefa, incluindo a construção do grafo e eventual espera na fila. Após a conclusão, **Busca: ... ms** mede a chamada do algoritmo selecionado, incluindo validação, obtenção do caminho e, na força bruta, atualização dos contadores, depois de construir o grafo. Não inclui carregar arquivos, construir o grafo, esperar na fila de execução ou animar. A avaliação experimental exige repetições e condições documentadas. Como os pesos são 1, BFS também encontra o caminho mínimo; aqui é usada apenas como referência de validação.
+Durante o cálculo, **Decorrido: ... s** mostra o tempo desde o envio da tarefa, incluindo a construção do grafo e eventual espera na fila. Após a conclusão, **Busca: ... ms** mede a chamada do algoritmo selecionado, incluindo validação, obtenção do caminho e, na força bruta, atualização dos contadores, depois de construir o grafo. Não inclui carregar arquivos, construir o grafo, esperar na fila de execução ou animar. A avaliação experimental exige repetições e condições documentadas. Como os pesos são 1, BFS também encontra o caminho mínimo e pode ser selecionada na interface para comparação com Dijkstra.
 
 ## Dataset: origem, atribuição e regras
 
@@ -161,5 +175,5 @@ Para adicionar outro mapa compatível ao catálogo, coloque o arquivo `.map` em 
 
 ## Referências
 
-- SKIENA, Steven S. *The Algorithm Design Manual*. 2. ed. Springer, 2008, seção 6.3.1, “Dijkstra’s Algorithm”, p. 206–209. A seção 6.3.2 trata de caminhos mínimos entre todos os pares com Floyd.
+- SKIENA, Steven S. *The Algorithm Design Manual*. 2. ed. Springer, 2008, seção 5.6, “Breadth-First Search”, p. 162–165; seção 6.3.1, “Dijkstra’s Algorithm”, p. 206–209. A seção 6.3.2 trata de caminhos mínimos entre todos os pares com Floyd.
 - STURTEVANT, Nathan R. *Benchmarks for Grid-Based Pathfinding*. IEEE Transactions on Computational Intelligence and AI in Games, v. 4, n. 2, p. 144–148, 2012. [Texto do autor](https://www.cs.du.edu/~sturtevant/papers/benchmarks.pdf).

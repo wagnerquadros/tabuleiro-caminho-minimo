@@ -134,7 +134,7 @@ def conferir_cancelamento(tarefa):
 
 
 try:
-    assert set(app.algorithm_options) == {"dijkstra", "dijkstra_simples", "forca_bruta"}
+    assert set(app.algorithm_options) == {"dijkstra", "dijkstra_simples", "bfs", "forca_bruta"}
     assert all(not w.instate(["disabled"]) for w in app.algorithm_options.values())
     app.speed.set("Instantânea")
     for tamanho in (3, 4):
@@ -230,6 +230,6 @@ try:
     app.play()
     esperar_busca()
     assert app.distance.get() == "10" and app.player == app.target
-    print("OK: três opções habilitadas, mapas didáticos, animação, sem rota, custo zero e cancelamento na interface.")
+    print("OK: quatro opções habilitadas, mapas didáticos, animação, sem rota, custo zero e cancelamento na interface.")
 finally:
     app.close()

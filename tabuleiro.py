@@ -1,7 +1,7 @@
 """Interface de caminhos mínimos. Execute: python tabuleiro.py
 
 A interface usa Tkinter, incluído na instalação padrão do Python para Windows.
-O cálculo usa as duas versões de Dijkstra e força bruta de roteamento.py.
+O cálculo usa BFS, as duas versões de Dijkstra e força bruta de roteamento.py.
 Cada célula livre é um vértice; movimentos ortogonais custam 1.
 """
 
@@ -14,7 +14,7 @@ from time import perf_counter
 from tkinter import messagebox, ttk
 from threading import Event
 
-from roteamento import dijkstra_simples, dijkstra_heap, forca_bruta, grafo_da_grade
+from roteamento import bfs, dijkstra_simples, dijkstra_heap, forca_bruta, grafo_da_grade
 from mapas_movingai import ler_mapa
 
 ROWS, COLS = 12, 18
@@ -23,6 +23,7 @@ DATASET_DIR = Path(__file__).resolve().parent / "datasets" / "artificial_random"
 ALGORITMOS = {
     "dijkstra_simples": ("Dijkstra — livro (varredura)", dijkstra_simples),
     "dijkstra": ("Dijkstra — min-heap", dijkstra_heap),
+    "bfs": ("BFS — fila FIFO", bfs),
     "forca_bruta": ("Força bruta", forca_bruta),
 }
 COLORS = {
@@ -510,7 +511,7 @@ class RouteBoard:
         self.draw_overlay()
         grade = self.current_grid()
         algoritmo = self.algorithm.get()
-        if self.rows * self.cols > 6000 or algoritmo != "dijkstra":
+        if self.rows * self.cols > 6000 or algoritmo in ("dijkstra_simples", "forca_bruta"):
             self.status.set("Enumerando todas as rotas. Para testes rápidos, use os mapas 3×3 e 4×4."
                             if algoritmo == "forca_bruta" else
                             "Calculando a rota… Reiniciar percurso cancela a busca.")
