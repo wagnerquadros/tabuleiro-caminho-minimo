@@ -73,7 +73,7 @@ try:
     root.update()
     assert app.start==livre_mais_proxima(mapa,(0,0))
     assert app.target==livre_mais_proxima(mapa,(511,511))
-    assert app.canvas.find_withtag("map") and len(app.canvas.find_withtag("map"))==1
+    assert app.canvas.find_withtag("tile") and len(app.canvas.find_withtag("tile"))<=60
     assert sum(nome.startswith("random512-") for nome in app.map_files)==70
     assert {"didatico-3x3.map", "didatico-4x4.map"} <= app.map_files.keys()
     origem,destino=app.start,app.target
@@ -93,10 +93,11 @@ try:
         assert app.cell_at(*ponto_na_tela((256,256)))==(256,256)
         assert app.canvas.canvasx(0)>0 and app.canvas.canvasy(0)>0
         assert len(app.canvas.find_withtag("map"))<12_500
-        if app.map_image is not None:
-            assert app.map_image.width()<=app.canvas.winfo_width()+1
-            assert app.map_image.height()<=app.canvas.winfo_height()+1
-        # Clique após zoom e rolagem precisa selecionar a célula correta.
+
+        from tabuleiro import BLOCO
+        assert all(imagem.width()<=BLOCO and imagem.height()<=BLOCO for imagem,_ in app.tiles.values())
+        assert len(app.tiles)<=(app.canvas.winfo_width()//BLOCO+6)*(app.canvas.winfo_height()//BLOCO+6)
+
         livre=next((r,c) for r in range(245,266) for c in range(245,266) if mapa.livre((r,c)))
         app.focus_cell(livre)
         root.update_idletasks()

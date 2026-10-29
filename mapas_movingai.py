@@ -5,7 +5,9 @@ Movimentos ortogonais e custo 1 são definidos em roteamento.py.
 """
 
 from dataclasses import dataclass
+from functools import lru_cache
 from hashlib import sha256
+import json
 from pathlib import Path
 
 MAX_CELULAS = 1_048_576
@@ -66,3 +68,25 @@ def ler_mapa(caminho):
     if not any("." in linha for linha in grade):
         raise ValueError("O mapa não tem nenhuma casa livre.")
     return Mapa(grade, caminho.name, sha256(dados).hexdigest())
+
+
+@lru_cache(maxsize=None)
+def _pontos_da_pasta(pasta):
+    """Lê manifesto.json da pasta: {arquivo: (origem, destino)} com base 0."""
+    manifesto = Path(pasta) / "manifesto.json"
+    if not manifesto.is_file():
+        return {}
+    dados = json.loads(manifesto.read_text(encoding="utf-8"))
+    return {registro["arquivo"]: (tuple(v - 1 for v in registro["origem"]),
+                                  tuple(v - 1 for v in registro["destino"]))
+            for registro in dados.get("mapas", ())
+            if "origem" in registro and "destino" in registro}
+
+
+def pontos_definidos(caminho):
+    """Origem e destino fixados pelo manifesto do dataset, ou None.
+
+    Os manifestos registram [linha, coluna] com índices iniciados em 1.
+    """
+    caminho = Path(caminho)
+    return _pontos_da_pasta(str(caminho.resolve().parent)).get(caminho.name)

@@ -12,7 +12,7 @@ sys.path.insert(0, str(BASE))
 from mapas_movingai import Mapa
 from roteamento import BuscaCancelada, dijkstra_heap, dijkstra_simples, forca_bruta, grafo_da_grade
 from apoio import bfs_unitario, conferir_rota
-from tabuleiro import RouteBoard
+from tabuleiro import BuscaAoVivo, cantos_da_rota, RouteBoard
 
 
 class VizinhosObservados(list):
@@ -134,7 +134,8 @@ def conferir_cancelamento(tarefa):
 
 
 try:
-    assert set(app.algorithm_options) == {"dijkstra", "dijkstra_simples", "bfs", "forca_bruta"}
+    assert set(app.algorithm_options) == {"dijkstra", "dijkstra_simples", "bfs",
+                                         "bmssp", "forca_bruta"}
     assert all(not w.instate(["disabled"]) for w in app.algorithm_options.values())
     app.speed.set("Instantânea")
     for tamanho in (3, 4):
@@ -231,5 +232,30 @@ try:
     esperar_busca()
     assert app.distance.get() == "10" and app.player == app.target
     print("OK: quatro opções habilitadas, mapas didáticos, animação, sem rota, custo zero e cancelamento na interface.")
+
+    assert cantos_da_rota([(0, 0), (0, 1), (0, 2), (1, 2), (2, 2), (2, 3)]) == [(0, 0), (0, 2), (2, 2), (2, 3)]
+    app.map_choice.set("random512-20-0.map")
+    app.load_selected()
+    app.algorithm_options["forca_bruta"].invoke()
+    app.play()
+    tarefa = app.search_future
+    assert isinstance(tarefa, BuscaAoVivo) and tarefa.running()
+    inicio, pior, rotas = monotonic(), 0.0, set()
+    while monotonic() - inicio < 3:
+        antes = monotonic()
+        root.update()
+        pior = max(pior, monotonic() - antes)
+        if app.current_attempt():
+            rotas.add(app.current_attempt())
+        sleep(.01)
+    assert pior < .5, f"A janela ficou {pior:.2f} s sem responder"
+    assert len(rotas) >= 3, "A rota laranja não mudou durante a enumeração"
+    assert len(app.canvas.find_withtag("tentativa")) == 4
+    app.play()  # Cancela.
+    assert tarefa.processo.wait(timeout=5) is not None, "O processo auxiliar não foi encerrado"
+    conferir_cancelamento(tarefa)
+    assert not app.canvas.find_withtag("tentativa") and "cancelada" in app.status.get()
+    print(f"OK: 512 × 512 em outro processo; janela respondendo (pior {pior * 1000:.0f} ms), "
+          f"{len(rotas)} rotas laranja distintas, cancelamento encerra o processo.")
 finally:
     app.close()

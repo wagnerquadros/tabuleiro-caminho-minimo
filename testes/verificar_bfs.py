@@ -128,7 +128,7 @@ def esperar_busca():
 
 try:
     assert app.algorithm.get() == "dijkstra"
-    assert app.algorithm_options["bfs"].cget("text") == "BFS — fila FIFO"
+    assert app.algorithm_options["bfs"].cget("text") == "BFS"
     assert not app.algorithm_options["bfs"].instate(["disabled"])
     app.speed.set("Instantânea")
     app.load_board(Mapa(("...", ".#.", "..."), "obstáculo"))

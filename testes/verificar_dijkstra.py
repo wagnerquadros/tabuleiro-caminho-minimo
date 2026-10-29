@@ -83,7 +83,31 @@ for algoritmo in ALGORITMOS:
         else:
             raise AssertionError("Entrada inválida aceita")
 
-# O cancelamento também funciona depois de a tarefa ter começado, não só na fila.
+estat = {}
+assert dijkstra_heap(grafo_da_grade(("..", "..")), (0, 0), (1, 0), estatisticas=estat) == (1, [(0, 0), (1, 0)])
+assert estat == {"retiradas": 3, "descartadas": 0, "expandidas": 2} 
+estat = {}
+
+pesado = {"S": [("A", 10), ("B", 1)], "A": [], "B": [("A", 1)]}
+dijkstra_heap(pesado, "S", "A", parar_no_destino=False, estatisticas=estat)
+assert estat == {"retiradas": 4, "descartadas": 1, "expandidas": 3}
+rng_estat = Random(77)
+for _ in range(200):
+    n = rng_estat.randint(1, 12)
+    grafo = {u: [(v, rng_estat.randint(0, 9)) for v in range(n) if v != u and rng_estat.random() < .3]
+             for u in range(n)}
+    a, b = rng_estat.randrange(n), rng_estat.randrange(n)
+    for parar in (True, False):
+        estat = {}
+        com = dijkstra_heap(grafo, a, b, parar_no_destino=parar, estatisticas=estat)
+        assert com[0] == dijkstra_heap(grafo, a, b, parar_no_destino=parar)[0]
+        destino_retirado = parar and com[0] != inf
+        assert estat["retiradas"] == estat["expandidas"] + estat["descartadas"] + destino_retirado
+        if not parar:
+   
+            alcancaveis = sum(1 for v in grafo if referencia_ponderada(grafo, a, v) != inf)
+            assert estat["expandidas"] == alcancaveis
+
 grafo = grafo_da_grade(tuple("." * 100 for _ in range(100)))
 for algoritmo in ALGORITMOS:
     cancelar = Event()
